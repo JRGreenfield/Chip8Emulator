@@ -1,9 +1,8 @@
 export const fsSource = `
-varying highp vec2 vTextureCoord;
 
-uniform sampler2D uSampler;
+uniform lowp vec4 uPixelColor;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vTextureCoord);
+  gl_FragColor = uPixelColor;
 }
 `;
