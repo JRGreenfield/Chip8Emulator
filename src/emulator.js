@@ -14,7 +14,7 @@ let _soundTimer = new SoundTimer(60,_clockFrequency);
 let _memoryManger = new MemoryManager(4096);
 
 _graphicsManager.initialize();
-_graphicsManager.drawPixel(0,0,0xFF);
+_graphicsManager.drawPixel(63,0,0xF0);
 _graphicsManager.refresh();
 
 //_graphicsManager.drawPixel(1,1,false);

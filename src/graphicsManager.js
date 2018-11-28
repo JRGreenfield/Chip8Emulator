@@ -81,15 +81,15 @@ export function GraphicsManager(pollingFrequency,clockFrequency,screenWidth,scre
         _screenData = new Uint8Array(_screenWidth*_screenHeight);
     }
 
-    this.drawPixel = function(x,y,value)
+    this.drawPixel = function(x,y,data)
     {
         var pixelCleared=false;
         x%=_screenWidth;
         y%=_screenHeight;
-
+       
         for(var i=0;i<8;i++)
         {
-            let pixelValue = value & (1<<i);
+            let pixelValue = data & (1<<i);
             let index = ((x+i)%_screenWidth)+(y*_screenWidth);
             let value = _screenData[index] ^ pixelValue;
             
@@ -127,7 +127,8 @@ export function GraphicsManager(pollingFrequency,clockFrequency,screenWidth,scre
             if(_screenData[index])
             {
                 let xCoordinate = index % _screenWidth;
-                let yCoordinate = Math.floor(index / _screenHeight);
+                let yCoordinate = Math.floor(index / _screenWidth);
+                console.log(index+','+xCoordinate+','+yCoordinate);
                 mat4.translate(_modelViewMatrix,_identityMatrix,[xCoordinate,yCoordinate, 0.0]);
                 _gl.uniformMatrix4fv(_modelUniform,false,_modelViewMatrix);
                 _gl.drawArrays(_gl.TRIANGLES,0,6);
