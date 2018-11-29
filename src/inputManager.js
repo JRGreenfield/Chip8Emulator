@@ -20,22 +20,22 @@ export function InputManager(pollingFrequency,clockFrequency)
         _register=0;
 
         _keyMap = new Map();
-        keyMap.set(49,1);
-        keyMap.set(50,2);
-        keyMap.set(51,3);
-        keyMap.set(52,0xC);
-        keyMap.set(81,4);
-        keyMap.set(87,5);
-        keyMap.set(69,6);
-        keyMap.set(82,0xD);
-        keyMap.set(65,7);
-        keyMap.set(83,8);
-        keyMap.set(68,9);
-        keyMap.set(70,0xE);
-        keyMap.set(90,0xA);
-        keyMap.set(88,0);
-        keyMap.set(67,0xB);
-        keyMap.set(86,0xF);
+        _keyMap.set(49,1);
+        _keyMap.set(50,2);
+        _keyMap.set(51,3);
+        _keyMap.set(52,0xC);
+        _keyMap.set(81,4);
+        _keyMap.set(87,5);
+        _keyMap.set(69,6);
+        _keyMap.set(82,0xD);
+        _keyMap.set(65,7);
+        _keyMap.set(83,8);
+        _keyMap.set(68,9);
+        _keyMap.set(70,0xE);
+        _keyMap.set(90,0xA);
+        _keyMap.set(88,0);
+        _keyMap.set(67,0xB);
+        _keyMap.set(86,0xF);
 
         document.addEventListener('keydown',onKeyPressDown);
         document.addEventListener('keyup',onKeyPressUp);
@@ -43,7 +43,7 @@ export function InputManager(pollingFrequency,clockFrequency)
 
     this.mapKey=function(keyCode,action)
     {
-        keyMap.set(keyCode,action);
+        _keyMap.set(keyCode,action);
     }
 
     this.reset=function()
@@ -66,7 +66,7 @@ export function InputManager(pollingFrequency,clockFrequency)
 
     function onKeyPressDown(event)
     {
-        let keyValue = keyMap.get(event.keyCode);
+        let keyValue = _keyMap.get(event.keyCode);
         if(keyValue !== undefined)
         {
             _keyBuffer|=(1<<keyValue)&0xFFFF;
@@ -75,7 +75,7 @@ export function InputManager(pollingFrequency,clockFrequency)
     
     function onKeyPressUp(event)
     {
-        let keyValue = keyMap.get(event.keyCode);
+        let keyValue = _keyMap.get(event.keyCode);
         if(keyValue !== undefined)
         {
             _keyBuffer&=(~(1<<keyValue))&0xFFFF;

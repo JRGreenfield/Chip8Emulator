@@ -1,3 +1,4 @@
+/*
 import { GraphicsManager } from './graphicsManager';
 import { InputManager } from './inputManager';
 import { DelayTimer } from './delayTimer';
@@ -23,12 +24,20 @@ _soundTimer.initialize();
 
 //60Hz 16.6ms
 //_graphicsManager.draw();
+*/
+
+import {HardwareManager} from './hardwareManager';
+
+HardwareManager.initialize();
+console.log(HardwareManager.delayTimer.register);
+
 setInterval(main,16);
 
 function main()
 {
+    /*
     for(var cycle=0;cycle<_clockCyclesPerUpdate;cycle++)
     {
         //_graphicsManager.update(1);
-    }
+    }*/
 }
