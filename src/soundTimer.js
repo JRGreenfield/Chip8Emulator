@@ -1,13 +1,46 @@
-export function SoundTimer(pollingFrequency,clockFrequency)
-{
-    var _register;
-    var _cyclesProcessed;
-    const _cyclesPerUpdate=clockFrequency/pollingFrequency;
-    var _audioCtx;
-    var _oscillator;
-    var _gainNode;
+'use strict';
 
-    Object.defineProperty(SoundTimer.prototype,'register',{
+export function SoundTimer(pollingFrequency,clockFrequency,audioRenderer)
+{
+    let _register;
+    let _pollingFrequency=pollingFrequency;
+    let _clockFrequency=clockFrequency;
+    let _cyclesProcessed;
+    let _cyclesPerUpdate;
+    let _audioRenderer = audioRenderer;
+
+    Object.defineProperty(this,'pollingFrequency',{
+        get:function()
+        {
+            return _pollingFrequency;
+        },
+        set:function(value)
+        {
+            _pollingFrequency=value;
+            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        }
+    });
+
+    Object.defineProperty(this,'clockFrequency',{
+        get:function()
+        {
+            return _clockFrequency;
+        },
+        set:function(value)
+        {
+            _clockFrequency=value;
+            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        }
+    });
+
+    Object.defineProperty(this,'cyclesPerUpdate',{
+        get:function()
+        {
+            return _cyclesPerUpdate;
+        }
+    });
+
+    Object.defineProperty(this,'register',{
         get:function()
         {
             return _register[0];
@@ -18,7 +51,11 @@ export function SoundTimer(pollingFrequency,clockFrequency)
 
             if(_register[0]>0)
             {
-                _oscillator.start();
+                _audioRenderer.startBeepSound();
+            }
+            else
+            {
+                _audioRenderer.stopBeepSound();
             }
         }
     });
@@ -27,26 +64,28 @@ export function SoundTimer(pollingFrequency,clockFrequency)
     {
         _register = new Uint8Array(1);
         _cyclesProcessed=0;
-        
-        _audioCtx = new AudioContext();
-        _oscillator = _audioCtx.createOscillator();
-        _gainNode = _audioCtx.createGain();
-
-        _oscillator.connect(_gainNode);
-        _gainNode.connect(_audioCtx.destination);
-
-        _oscillator.type = "square";
-        _oscillator.frequency.value = 800;
+        _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
     }
 
     this.reset = function()
     {
         _register[0] = 0;
         _cyclesProcessed=0;
-        _oscillator.stop();
+        _audioRenderer.stopBeepSound();
     }
 
-    this.refresh = function()
+    this.update= function(cyclesToProcess)
+    {
+        _cyclesProcessed += cyclesToProcess;
+        
+        while(_cyclesProcessed >= _cyclesPerUpdate)
+        {
+            refresh();
+            _cyclesProcessed-=_cyclesPerUpdate;
+        }
+    }
+
+    function refresh()
     {
         if(_register[0] > 0)
         {
@@ -54,19 +93,8 @@ export function SoundTimer(pollingFrequency,clockFrequency)
 
             if(_register[0]===0)
             {
-                _oscillator.stop();
+                _audioRenderer.stopBeepSound();
             }
-        }
-    }
-
-    this.update= function(cyclesToProcess)
-    {
-        _cyclesProcessed += cyclesToProcess;
-        
-        if(_cyclesProcessed >= _cyclesPerUpdate)
-        {
-            _cyclesProcessed = 0;
-            this.refresh();
         }
     }
 

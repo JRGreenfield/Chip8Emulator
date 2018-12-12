@@ -1,5 +1,5 @@
 {
-  "name": "Chip8",
+  "name": "chip8",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -31,7 +31,7 @@
   },
   "ava": {
     "files": [
-      "test/*.js"
+      "test/*.test.js"
     ],
     "require": [
       "esm"

@@ -1,10 +1,45 @@
+'use strict';
+
 export function DelayTimer(pollingFrequency,clockFrequency)
 {
-    var _register;
-    var _cyclesProcessed;
-    const _cyclesPerUpdate=clockFrequency/pollingFrequency;
+    let _register;
+    let _cyclesProcessed;
+    let _cyclesPerUpdate;
+    let _pollingFrequency=pollingFrequency;
+    let _clockFrequency=clockFrequency;
 
-    Object.defineProperty(DelayTimer.prototype,'register',{
+    Object.defineProperty(this,'cyclesPerUpdate',{
+        get:function()
+        {
+            return _cyclesPerUpdate;
+        }
+    });
+
+    Object.defineProperty(this,'pollingFrequency',{
+        get:function()
+        {
+            return _pollingFrequency;
+        },
+        set:function(value)
+        {
+            _pollingFrequency=value;
+            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        }
+    });
+
+    Object.defineProperty(this,'clockFrequency',{
+        get:function()
+        {
+            return _clockFrequency;
+        },
+        set:function(value)
+        {
+            _clockFrequency=value;
+            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        }
+    });
+
+    Object.defineProperty(this,'register',{
         get:function()
         {
             return _register[0];
@@ -18,6 +53,7 @@ export function DelayTimer(pollingFrequency,clockFrequency)
     this.initialize = function()
     {
         _register = new Uint8Array(1);
+        _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
         _cyclesProcessed=0;
     }
 
@@ -27,22 +63,22 @@ export function DelayTimer(pollingFrequency,clockFrequency)
         _cyclesProcessed=0;
     }
 
-    this.refresh = function()
-    {
-        if(_register[0] > 0)
-        {
-            _register[0]--;
-        }
-    }
-
     this.update= function(cyclesToProcess)
     {
         _cyclesProcessed += cyclesToProcess;
         
-        if(_cyclesProcessed >= _cyclesPerUpdate)
+        while(_cyclesProcessed >= _cyclesPerUpdate)
         {
-            _cyclesProcessed = 0;
             refresh();
+            _cyclesProcessed-=_cyclesPerUpdate;
+        }
+    }
+
+    function refresh()
+    {
+        if(_register[0] > 0)
+        {
+            _register[0]--;
         }
     }
 }

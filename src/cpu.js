@@ -1,15 +1,55 @@
+'use strict';
+
 export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTimer)
 {
-    var _graphicsManager=graphicsManager;
-    var _memoryManager=memoryManger;
-    var _inputManager=inputManager;
-    var _delayTimer=delayTimer;
-    var _soundTimer=soundTimer;
-    var _generalRegisters;
-    var _indexRegister;
-    var _pc;
-    var _sp;
-    var _stack;
+    let _graphicsManager=graphicsManager;
+    let _memoryManager=memoryManger;
+    let _inputManager=inputManager;
+    let _delayTimer=delayTimer;
+    let _soundTimer=soundTimer;
+    let _generalRegisters;
+    let _indexRegister;
+    let _pc;
+    let _sp;
+    let _stack;
+    
+    for(let index=0;index<=0xF;index++)
+    {
+        Object.defineProperty(this,'v'+index.toString(),{
+            get:function()
+            {
+                return _generalRegisters[index];
+            }
+        });
+
+        Object.defineProperty(this,'s'+index.toString(),{
+            get:function()
+            {
+                return _stack[index];
+            }
+        });
+    }
+
+    Object.defineProperty(this,'i',{
+        get:function()
+        {
+            return _indexRegister[0];
+        }
+    });
+
+    Object.defineProperty(this,'pc',{
+        get:function()
+        {
+            return _pc[0];
+        }
+    });
+
+    Object.defineProperty(this,'sp',{
+        get:function()
+        {
+            return _sp[0];
+        }
+    });
 
     this.initialize = function()
     {
@@ -27,11 +67,149 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _sp[0]=0;
     }
 
-    function jump(opcode)
+    this.update = function(cyclesToProcess)
+    {
+        let opcode = _memoryManager.readWord(_pc[0]);
+
+        switch(opcode&0xF000)
+        {
+            case 0x0:
+                switch(opcode&0xFF)
+                {
+                    case 0xE0:
+                        cls(opcode);
+                        break;
+                    case 0xEE:
+                        ret(opcode);
+                        break;
+                }
+                break;
+            case 0x1000:
+                jp(opcode);
+                break;
+            case 0x2000:
+                call(opcode);
+                break;
+            case 0x3000:
+                seVxNN(opcode);
+                break;
+            case 0x4000:
+                sneVxNN(opcode);
+                break;
+            case 0x5000:
+                seVxVy(opcode);
+                break;
+            case 0x6000:
+                ldVxNN(opcode)
+                break;
+            case 0x7000:
+                addVxNN(opcode);
+                break;
+            case 0x8000:
+                switch(opcode&0xF)
+                {
+                    case 0:
+                        ldVxVy(opcode);
+                        break;
+                    case 1:
+                        orVxVy(opcode);
+                        break;
+                    case 2:
+                        andVxVy(opcode);
+                        break;
+                    case 3:
+                        xorVxVy(opcode);
+                        break;
+                    case 4:
+                        addVxVy(opcode);
+                        break;
+                    case 5:
+                        subVxVy(opcode);
+                        break;
+                    case 6:
+                        shrVx(opcode);
+                        break;
+                    case 7:
+                        subnVxVy(opcode);
+                        break;
+                    case 0xE:
+                        shlVx(opcode);
+                        break;
+                }
+                break;
+            case 0x9000:
+                sneVxVy(opcode);
+                break;
+            case 0xA000:
+                ldINNN(opcode);
+                break;
+            case 0xB000:
+                jpV0NNN(opcode);
+                break;
+            case 0xC000:
+                rndVxN(opcode);
+                break;
+            case 0xD000:
+                drwVxVyN(opcode);
+                break;
+            case 0xE000:
+                sknpVx(opcode);
+                break;
+            case 0xF000:
+                switch(opcode&0xFF)
+                {
+                    case 0x7:
+                        ldVxDT(opcode);
+                        break;
+                    case 0xA:
+                        ldVxN(opcode);
+                        break;
+                    case 0x15:
+                        ldDTVx(opcode);
+                        break;
+                    case 0x18:
+                        ldSTVx(opcode);
+                        break;
+                    case 0x1E:
+                        addIVx(opcode);
+                        break;
+                    case 0x29:
+                        ldFVx(opcode);
+                        break;
+                    case 0x33:
+                        ldBCDIVx(opcode);
+                        break;
+                    case 0x55:
+                        ldIV0Vx(opcode);
+                        break;
+                    case 0x65:
+                        ldVxI(opcode);
+                        break;
+                }
+                break;
+        }
+    }
+
+    //00E0
+    function cls(opcode) 
+    {
+        _graphicsManager.clearScreen();
+        pc[0]+=2;
+    }
+
+    //00EE 
+    function ret(opcode)
+    {
+        _pc[0]=_sp[0]--;
+    }
+
+    //1nnn 
+    function jp(opcode)
     {
         _pc[0]=0xFFF&opcode;
     }
 
+    //2nnn
     function call(opcode)
     {
         _sp[0]++;
@@ -39,7 +217,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _pc[0]=0xFFF & opcode;
     }
 
-    function skipEqualVxByte(opcode)
+    //3xkk
+    function seVxNN(opcode)
     {
         if(_generalRegisters[(opcode & 0xF00)>>8]===(opcode&0xFF))
         {
@@ -51,7 +230,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         }
     }
 
-    function skipNotEqualVxByte(opcode)
+    //4xkk
+    function sneVxNN(opcode)
     {
         if(_generalRegisters[(opcode & 0xF00)>>8]!==(opcode&0xFF))
         {
@@ -63,7 +243,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         }
     }
 
-    function skipEqualVxVy(opcode)
+    //5xy0
+    function seVxVy(opcode)
     {
         if(_generalRegisters[(opcode & 0xF00)>>8] === _generalRegisters[(opcode & 0xF0)>>4])
         {
@@ -75,42 +256,49 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         }
     }
 
-    function loadVxByte(opcode)
+    //6xkk 
+    function ldVxNN(opcode)
     {
         _generalRegisters[(0xF00&opcode)>>8]=opcode&0xFF;
         pc[0]+=2;
     }
 
-    function addVxByte(opcode)
+    //7xkk 
+    function addVxNN(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]+=opcode&0xFF;
         pc[0]+=2;
     }
 
-    function loadVxVy(opcode)
+    //8xy0
+    function ldVxVy(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]=(opcode&0xF0)>>4;
         pc[0]+=2;
     }
 
+    //8xy1 
     function orVxVy(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]|=(opcode&0xF0)>>4;
         pc[0]+=2;
     }
 
+    //8xy2 
     function andVxVy(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]&=(opcode&0xF0)>>4;
         pc[0]+=2;
     }
 
+    //8xy3
     function xorVxVy(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]^=(opcode&0xF0)>>4;
         pc[0]+=2;
     }
 
+    //8xy4
     function addVxVy(opcode)
     {
         let vx = (opcode&0xF00)>>8;
@@ -121,7 +309,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         pc[0]+=2;
     }
 
-    function subtractVxVy(opcode)
+    //8xy5 
+    function subVxVy(opcode)
     {
         let vx = (opcode&0xF00)>>8;
         let vy = (opcode&0xF0)>>4;
@@ -131,14 +320,16 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         pc[0]+=2;
     }
 
-    function shiftRightVx(opcode)
+    //8xy6 
+    function shrVx(opcode)
     {
         _generalRegisters[0xF]=_generalRegisters[(opcode&0xF00)>>8]&0x1;
         _generalRegisters[(opcode&0xF00)>>8]>>1;
         pc[0]+=2;
     }
 
-    function subtractVyVx(opcode)
+    //8xy7 
+    function subnVxVy(opcode)
     {
         let vx = (opcode&0xF00)>>8;
         let vy = (opcode&0xF0)>>4;
@@ -148,7 +339,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         pc[0]+=2;
     }
 
-    function shiftLeftVx(opcode)
+    //8xyE
+    function shlVx(opcode)
     {
         let vx = (opcode&0xF00)>>8;
         _generalRegisters[0xF]=(_generalRegisters[vx]&0x80)>>7;
@@ -156,7 +348,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         pc[0]+=2;
     }
 
-    function skipNextEqualVx(opcode)
+    //9xy0 
+    function sneVxVy(opcode)
     {
         if(_generalRegisters[(opcode&0xF00)>>8]!==_generalRegisters[(opcode&0xF0)>>4])
         {
@@ -168,24 +361,157 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         }
     }
 
-    function loadIndexAddress(opcode)
+    //Annn 
+    function ldINNN(opcode)
     {
         _indexRegister[0]=opcode&0xFFF;
         pc[0]+=2;
     }
 
-    function jumpV0Address(opcode)
+    //Bnnn 
+    function jpV0NNN(opcode)
     {
         _pc[0]+=(opcode&0xFFF)+_generalRegisters[0];
     }
 
-    function randomVx(opcode)
+    //Cxkk 
+    function rndVxN(opcode)
     {
-        let value = opcode && 0xFF;
+        let value = opcode & 0xFF;
         let randomNumber=Math.floor(Math.random() * Math.floor(256));
         _generalRegisters[(opcode & 0xF00)>>8]=value&randomNumber;
         pc[0]+=2;
     }
 
-    
+    //Dxyn 
+    function drwVxVyN(opcode)
+    {
+        let vx = opcode & 0xF00;
+        let vy = opcode & 0xF0;
+        let rows = opcode & 0xF;
+
+        _generalRegisters[0xF]=0;
+
+        for(let i=0;i<rows;i++)
+        {
+            let data = _memoryManager.readByte(_indexRegister[0]+i);
+            if(_graphicsManager.drawPixel(vx,vy,data))
+            {
+                _generalRegisters[0xF]=1;
+            }
+        }
+
+        pc[0]+=2;
+    }
+
+    //Ex9E 
+    function skpVx(opcode)
+    {
+        let key = (opcode & 0xF00)>>8;
+        if(_inputManager.register&(1<<key))
+        {
+            pc[0]+=4;
+        }
+        else
+        {
+            pc[0]+=2;
+        }
+    }
+
+    //ExA1 
+    function sknpVx(opcode)
+    {
+        let key = (opcode & 0xF00)>>8;
+        if(!(_inputManager.register&(1<<key)))
+        {
+            pc[0]+=4;
+        }
+        else
+        {
+            pc[0]+=2;
+        }
+    }
+
+    //Fx07 
+    function ldVxDT(opcode)
+    {
+        _generalRegisters[(opcode&0xF00)>>8]=_delayTimer.register;
+        pc[0]+=2;
+    }
+
+    //Fx0A 
+    function ldVxN(opcode)
+    {
+        for(let i=0;i<16;i++)
+        {
+            if(_inputManager.register&(1<<key))
+            {
+                _generalRegisters[(opcode&0xF00)>>8]=i;
+                _pc[0]+=2;
+                break;
+            }
+        }
+    }
+
+    //Fx15 
+    function ldDTVx(opcode)
+    {
+        _delayTimer.register=_generalRegisters[(opcode&0xF00)>>8];
+        pc[0]+=2;
+    }
+
+    //Fx18 
+    function ldSTVx(opcode)
+    {
+        _soundTimer.register=_generalRegisters[(opcode&0xF00)>>8];
+        pc[0]+=2;
+    }
+
+    //Fx1E 
+    function addIVx(opcode)
+    {
+        _indexRegister[0]+=_generalRegisters[(opcode&0xF00)>>8];
+        pc[0]+=2;
+    }
+
+    //Fx29 
+    function ldFVx(opcode)
+    {
+        _indexRegister[0]=_generalRegisters[(opcode&0xF00)>>8]*5;
+        pc[0]+=2;
+    }
+
+    //Fx33
+    function ldBCDIVx(opcode)
+    {
+        let value = _generalRegisters[(opcode & 0xF00)>>8];
+        _memoryManager.writeByte(_indexRegister[0],Math.floor(value/100));
+        _memoryManager.writeByte(_indexRegister[0]+1,Math.floor(value/10)%10);
+        _memoryManager.writeByte(_indexRegister[0]+2,(value%100)%10);
+        pc[0]+=2;
+    }
+
+    //Fx55
+    function ldIV0Vx(opcode)
+    {
+        let vx = (opcode & 0xF00) >> 8;
+
+        for(let i = 0; i <= vx;i++)
+        {
+            _memoryManager.writeByte(_indexRegister[0]+i,_generalRegisters[i]);
+        }
+
+        pc[0]+=2;
+    }
+
+    //Fx65
+    function ldVxI(opcode)
+    {
+        let vx = (opcode & 0xF00) >> 8;
+        for(let i=0;i<=vx;i++)
+        {
+            _generalRegisters[i]=_memoryManager.readByte(_indexRegister[0]+1);
+        }
+        pc[0]+=2;
+    }
 }

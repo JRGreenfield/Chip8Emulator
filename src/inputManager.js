@@ -1,10 +1,14 @@
-export function InputManager(pollingFrequency,clockFrequency)
+'use strict';
+
+export function InputManager(clockFrequency,pollingFrequency=1000)
 {
-    var _clockCyclesPerUpdate = clockFrequency/pollingFrequency;
-    var _clockCyclesCount;
-    var _keyBuffer;
-    var _register;
-    var _keyMap;
+    let _clockFrequency = clockFrequency;
+    let _pollingFrequency = pollingFrequency;
+    let _clockCyclesPerUpdate = clockFrequency/pollingFrequency;
+    let _clockCyclesCount;
+    let _keyBuffer;
+    let _register;
+    let _keyMap;
 
     Object.defineProperty(InputManager.prototype,'register',{
         get:function()
@@ -13,12 +17,35 @@ export function InputManager(pollingFrequency,clockFrequency)
         }
     });
 
+    Object.defineProperty(InputManager.clockFrequency,'clockFrequency',{
+        get:function()
+        {
+            return _clockFrequency;
+        },
+        set:function(value)
+        {
+            _clockFrequency=value;
+            _clockCyclesPerUpdate = _clockFrequency/_pollingFrequency;
+        }
+    })
+
+    Object.defineProperty(InputManager.pollingFrequency,'pollingFrequency',{
+        get:function()
+        {
+            return _pollingFrequency;
+        },
+        set:function(value)
+        {
+            _pollingFrequency=value;
+            _clockCyclesPerUpdate = _clockFrequency/_pollingFrequency;
+        }
+    });
+
     this.initialize = function()
     {
         _clockCyclesCount=0;
         _keyBuffer=0;
         _register=0;
-
         _keyMap = new Map();
         _keyMap.set(49,1);
         _keyMap.set(50,2);
