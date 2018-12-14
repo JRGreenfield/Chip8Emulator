@@ -1,6 +1,6 @@
 'use strict';
 
-export function KeyboardHandler()
+export function MockKeyboardHandler()
 {
     let _keyMap;
     let _keyDownCallbackMap;
@@ -11,9 +11,16 @@ export function KeyboardHandler()
         _keyMap = new Map();
         _keyDownCallbackMap = new Map();
         _keyUpCallbackMap = new Map();
-        
-        document.addEventListener('keydown',onKeyPressDown);
-        document.addEventListener('keyup',onKeyPressUp);
+    }
+
+    this.recordKeyPressDown = function(keyCode,repeat,shiftKeyActive,ctrlKeyActive,altKeyActive)
+    {
+        onKeyPressDown({keyCode:keyCode,repeat:repeat,shiftKey:shiftKeyActive,ctrlKey:ctrlKeyActive,altKey:altKeyActive});
+    }
+
+    this.recordKeyPressUp = function(keyCode,repeat,shiftKeyActive,ctrlKeyActive,altKeyActive)
+    {
+        onKeyPressUp({keyCode:keyCode,repeat:repeat,shiftKey:shiftKeyActive,ctrlKey:ctrlKeyActive,altKey:altKeyActive});
     }
 
     this.mapKey=function(keyCode,action,repeatKeyDown=false,shiftRequired=false,altRequired=false,ctrlRequired=false)

@@ -1,6 +1,6 @@
 'use strict';
 
-export function SoundTimer(pollingFrequency,clockFrequency,audioRenderer)
+export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
 {
     let _register;
     let _pollingFrequency=pollingFrequency;
