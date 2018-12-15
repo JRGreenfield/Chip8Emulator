@@ -6,9 +6,10 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
     let _clockFrequency = clockFrequency;
     let _pollingFrequency = pollingFrequency;
     let _cyclesPerUpdate = clockFrequency/pollingFrequency;
-    let _clockCyclesCount;
+    let _cyclesProcessed;
     let _keyBuffer;
     let _register;
+  
     
     Object.defineProperty(this,'cyclesPerUpdate',{
         get:function()
@@ -48,9 +49,16 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
         }
     });
 
+    Object.defineProperty(this,'cyclesProcessed',{
+        get:function()
+        {
+            return _cyclesProcessed;
+        }
+    });
+
     this.initialize = function()
     {
-        _clockCyclesCount=0;
+        _cyclesProcessed=0;
         _keyBuffer=0;
         _register=0;
         _keyboardHandler.registerKeyDownCallback(onKeyPressDown);
@@ -59,7 +67,7 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
 
     this.reset=function()
     {
-        _clockCyclesCount=0;
+        _cyclesProcessed=0;
         _keyBuffer = 0;
         _register = 0;
     }
@@ -73,34 +81,25 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
             _register = _keyBuffer;
             _cyclesProcessed-=_cyclesPerUpdate;
         }
-
-        _clockCyclesCount+=cyclesToProcess;
     }
 
-    function onKeyPressDown(event)
-    {
-        let keyValue = _keyMap.get(event.keyCode);
+    function onKeyPressDown(action)
+    {    
+        let keyValue = action;
+    
         if(keyValue !== undefined)
         {
             _keyBuffer|=(1<<keyValue)&0xFFFF;
         }
     }
     
-    function onKeyPressUp(event)
+    function onKeyPressUp(action)
     {
-        let keyValue = _keyMap.get(event.keyCode);
+        let keyValue = action;
+
         if(keyValue !== undefined)
         {
             _keyBuffer&=(~(1<<keyValue))&0xFFFF;
         }
     }
 }
-
-
-
-
-
-
-
-
-

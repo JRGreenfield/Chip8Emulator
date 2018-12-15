@@ -39,6 +39,13 @@ export function DelayTimer(pollingFrequency,clockFrequency)
         }
     });
 
+    Object.defineProperty(this,'cyclesProcessed',{
+        get:function()
+        {
+            return _cyclesProcessed;
+        }
+    });
+
     Object.defineProperty(this,'register',{
         get:function()
         {

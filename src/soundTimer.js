@@ -40,6 +40,13 @@ export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
         }
     });
 
+    Object.defineProperty(this,'cyclesProcessed',{
+        get:function()
+        {
+            return _cyclesProcessed;
+        }
+    });
+
     Object.defineProperty(this,'register',{
         get:function()
         {

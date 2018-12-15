@@ -1,9 +1,5 @@
 'use strict';
 
-import {vsSource} from './shaders/vertex_shader';
-import {fsSource} from './shaders/fragment_shader';
-import * as mat4 from './glMatrix/mat4.js';
-
 export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,screenHeight,pixelRenderer)
 {
     let _framesPerSecond = framesPerSecond;
@@ -12,7 +8,7 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
     const _screenWidth=screenWidth;
     const _screenHeight=screenHeight;
     const _pixelRenderer = pixelRenderer;
-    let _clockCyclesCount;
+    let _cyclesProcessed;
     let _screenData;
     
     Object.defineProperty(GraphicsManager.prototype,'clockFrequency',{
@@ -39,6 +35,13 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
         }
     });
 
+    Object.defineProperty(this,'cyclesProcessed',{
+        get:function()
+        {
+            return _cyclesProcessed;
+        }
+    });
+
     this.initialize = function()
     {
         _screenData = new Uint8Array(_screenWidth*_screenHeight);     
@@ -47,7 +50,7 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
 
     this.clearScreen = function()
     {
-        _clockCyclesCount=0;
+        _cyclesProcessed=0;
         
         for(let index=0;index<_screenWidth*_screenHeight;index++)
         {
@@ -80,11 +83,11 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
 
     this.update = function(cyclesToProcess)
     {
-        _clockCyclesCount+=cyclesToProcess;
+        _cyclesProcessed+=cyclesToProcess;
         
-        if(_clockCyclesCount >= _clockCyclesPerUpdate)
+        while(_cyclesProcessed >= _clockCyclesPerUpdate)
         {
-            _clockCyclesCount = 0;
+            _cyclesProcessed-=cyclesToProcess;
 
             for(let index=0;index<_screenHeight*_screenWidth;index++)
             {

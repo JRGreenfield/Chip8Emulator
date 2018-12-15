@@ -18,12 +18,23 @@ export function KeyboardHandler()
 
     this.mapKey=function(keyCode,action,repeatKeyDown=false,shiftRequired=false,altRequired=false,ctrlRequired=false)
     {
+        if(_keyMap === undefined)
+        {
+            throw new ReferenceError("KeyboardHandler: call initialization before mapping keys");
+        }
+
         _keyMap.set(keyCode,{action:action,repeatKeyDown:repeatKeyDown,shiftRequired:shiftRequired,altRequired:altRequired,ctrlRequired:ctrlRequired});
     }
 
     this.reset=function()
     {
         _keyMap = new Map();
+        _keyDownCallbackMap = new Map();
+        _keyUpCallbackMap = new Map();
+    }
+
+    this.clearKeyPressCallbacks = function()
+    {
         _keyDownCallbackMap = new Map();
         _keyUpCallbackMap = new Map();
     }
@@ -72,7 +83,7 @@ export function KeyboardHandler()
             {
                 for(let callback of _keyDownCallbackMap.values())
                 {
-                    callback(_keyMap.get(event.keyCode));
+                    callback(_keyMap.get(event.keyCode).action);
                 }
             }
         }
@@ -91,7 +102,7 @@ export function KeyboardHandler()
             {
                 for(let callback of _keyUpCallbackMap.values())
                 {
-                    callback(_keyMap.get(event.keyCode));
+                    callback(_keyMap.get(event.keyCode).action);
                 }
             }
         }

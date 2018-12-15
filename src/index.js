@@ -4,10 +4,10 @@
 import './style.css';
 import { GLPixelRenderer } from './glPixelRenderer';
 import { AudioRenderer} from './audioRenderer';
-import { KeyboardHandler } from './keyboardHandler';
+import { MockKeyboardHandler } from '../test/mockKeyboardHandler';
 //import './emulator.js';
 
-let _keyboardHandler = new KeyboardHandler();
+let _keyboardHandler = new MockKeyboardHandler();
 _keyboardHandler.initialize();
 _keyboardHandler.mapKey(49,1);
 _keyboardHandler.mapKey(50,2);
@@ -29,6 +29,10 @@ _keyboardHandler.mapKey(86,0xF);
 let _keyDownCallbackId=_keyboardHandler.registerKeyDownCallback(keydownLog);
 let _keyUpCallbackId=_keyboardHandler.registerKeyUpCallback(keyupLog);
 
+_keyboardHandler.recordKeyPressDown(88,false,false,false,false);
+_keyboardHandler.recordKeyPressUp(88,false,false,false,false);
+
+
 let _audioRenderer = new AudioRenderer();
 _audioRenderer.initialize();
 
@@ -46,12 +50,12 @@ _pixelRenderer.refresh();
 
 function keydownLog(arg)
 {
-    console.log(arg.action);
+    console.log(arg);
 }
 
 function keyupLog(arg)
 {
-    console.log(arg.action);
+    console.log(arg);
 }
 
 
