@@ -1,6 +1,6 @@
 'use strict';
 
-export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTimer)
+export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTimer,pcStartAddress,stackSize)
 {
     let _graphicsManager=graphicsManager;
     let _memoryManager=memoryManger;
@@ -12,17 +12,23 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     let _pc;
     let _sp;
     let _stack;
+    let _stackSize=stackSize;;
+    let _pcStartAddress=pcStartAddress;
+    let _operationCyclesRequired;
     
     for(let index=0;index<=0xF;index++)
     {
-        Object.defineProperty(this,'v'+index.toString(),{
+        Object.defineProperty(this,'v'+Math.abs(index).toString(16),{
             get:function()
             {
                 return _generalRegisters[index];
             }
         });
+    }
 
-        Object.defineProperty(this,'s'+index.toString(),{
+    for(let index=0;index<_stackSize;index++)
+    {
+        Object.defineProperty(this,'s'+Math.abs(index).toString(16),{
             get:function()
             {
                 return _stack[index];
@@ -51,26 +57,62 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         }
     });
 
+    Object.defineProperty(this,'operationCyclesRequired',{
+        get:function()
+        {
+            return _operationCyclesRequired;
+        }
+    });
+
     this.initialize = function()
     {
         _generalRegisters = new Uint8Array(16);
         _indexRegister = new Uint16Array(1);
         _pc = new Uint16Array(1);
         _sp = new Uint8Array(1);
-        _stack = new Uint16Array(16);
+        _stack = new Uint16Array(_stackSize);
+        _pc[0]=_pcStartAddress;
+        _operationCyclesRequired=0;
     }
 
     this.reset = function()
     {
-        this.initialize();
-        _pc[0]=0x200;
+        _operationCyclesRequired=0;
+        _pc[0]=_pcStartAddress;
         _sp[0]=0;
+        _indexRegister=0;
+        for(let index=0;index<=0xF;index++)
+        {
+            _generalRegisters[index]=0;
+            
+        }
+        for(let index=0;index<stackSize;index++)
+        {
+            _stack[index]=0;
+        }
     }
 
     this.update = function(cyclesToProcess)
     {
-        let opcode = _memoryManager.readWord(_pc[0]);
+        while(cyclesToProcess > 0)
+        {
+            if(_operationCyclesRequired===0)
+            {
+                let opcode = _memoryManager.readWord(_pc[0]);
+                execute(opcode);
+            }
+           
+            else
+            {
+                --_operationCyclesRequired;
+            }
+        
+            --cyclesToProcess;
+        }  
+    }
 
+    function execute(opcode)
+    {
         switch(opcode&0xF000)
         {
             case 0x0:
@@ -195,18 +237,21 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     {
         _graphicsManager.clearScreen();
         pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //00EE 
     function ret(opcode)
     {
         _pc[0]=_sp[0]--;
+        _operationCyclesRequired=2;
     }
 
     //1nnn 
     function jp(opcode)
     {
         _pc[0]=0xFFF&opcode;
+        _operationCyclesRequired=2;
     }
 
     //2nnn
@@ -215,6 +260,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _sp[0]++;
         _stack[_sp[0]]=_pc[0];
         _pc[0]=0xFFF & opcode;
+        _operationCyclesRequired=2;
     }
 
     //3xkk
@@ -228,6 +274,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         {
             _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //4xkk
@@ -241,6 +288,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         {
             _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //5xy0
@@ -254,59 +302,65 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         {
             _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //6xkk 
     function ldVxNN(opcode)
     {
         _generalRegisters[(0xF00&opcode)>>8]=opcode&0xFF;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //7xkk 
     function addVxNN(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]+=opcode&0xFF;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy0
     function ldVxVy(opcode)
     {
-        _generalRegisters[(opcode&0xF00)>>8]=(opcode&0xF0)>>4;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]=_generalRegisters[(opcode&0xF0)>>4];
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy1 
     function orVxVy(opcode)
     {
-        _generalRegisters[(opcode&0xF00)>>8]|=(opcode&0xF0)>>4;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]|=_generalRegisters[(opcode&0xF0)>>4];
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy2 
     function andVxVy(opcode)
     {
-        _generalRegisters[(opcode&0xF00)>>8]&=(opcode&0xF0)>>4;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]&=_generalRegisters[(opcode&0xF0)>>4];
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy3
     function xorVxVy(opcode)
     {
-        _generalRegisters[(opcode&0xF00)>>8]^=(opcode&0xF0)>>4;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]^=_generalRegisters[(opcode&0xF0)>>4];
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy4
     function addVxVy(opcode)
     {
-        let vx = (opcode&0xF00)>>8;
-        let vy = (opcode&0xF0)>>4;
-        let sum = _generalRegisters[vx]+_generalRegisters[vy];
+        let sum = _generalRegisters[(opcode&0xF00)>>8]+_generalRegisters[(opcode&0xF0)>>4];
         _generalRegisters[0xF]=sum>255?1:0;
-        _generalRegisters[vx]=sum;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]+=_generalRegisters[(opcode&0xF0)>>4];
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy5 
@@ -317,15 +371,17 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         let difference = _generalRegisters[vx]>_generalRegisters[vy];
         _generalRegisters[0xF]=_generalRegisters[vx]>_generalRegisters[vy]?1:0;
         _generalRegisters[vx]=difference;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy6 
     function shrVx(opcode)
     {
         _generalRegisters[0xF]=_generalRegisters[(opcode&0xF00)>>8]&0x1;
-        _generalRegisters[(opcode&0xF00)>>8]>>1;
-        pc[0]+=2;
+        _generalRegisters[(opcode&0xF00)>>8]>>=1;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xy7 
@@ -336,7 +392,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _generalRegisters[0xF]=_generalRegisters[vy]>_generalRegisters[vx]?0:1;
         let difference = _generalRegisters[vy]-_generalRegisters[vx];
         _generalRegisters[vx]=difference;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //8xyE
@@ -344,8 +401,9 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     {
         let vx = (opcode&0xF00)>>8;
         _generalRegisters[0xF]=(_generalRegisters[vx]&0x80)>>7;
-        _generalRegisters[vx]<<1;
-        pc[0]+=2;
+        _generalRegisters[vx]<<=1;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //9xy0 
@@ -359,19 +417,22 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         {
             _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //Annn 
     function ldINNN(opcode)
     {
         _indexRegister[0]=opcode&0xFFF;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Bnnn 
     function jpV0NNN(opcode)
     {
-        _pc[0]+=(opcode&0xFFF)+_generalRegisters[0];
+        _pc[0]=( (opcode&0xFFF) + _generalRegisters[0] )&0xFFF;
+        _operationCyclesRequired=2;
     }
 
     //Cxkk 
@@ -380,7 +441,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         let value = opcode & 0xFF;
         let randomNumber=Math.floor(Math.random() * Math.floor(256));
         _generalRegisters[(opcode & 0xF00)>>8]=value&randomNumber;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Dxyn 
@@ -401,7 +463,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
             }
         }
 
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Ex9E 
@@ -410,12 +473,13 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         let key = (opcode & 0xF00)>>8;
         if(_inputManager.register&(1<<key))
         {
-            pc[0]+=4;
+            _pc[0]+=4;
         }
         else
         {
-            pc[0]+=2;
+            _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //ExA1 
@@ -424,19 +488,21 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         let key = (opcode & 0xF00)>>8;
         if(!(_inputManager.register&(1<<key)))
         {
-            pc[0]+=4;
+            _pc[0]+=4;
         }
         else
         {
-            pc[0]+=2;
+            _pc[0]+=2;
         }
+        _operationCyclesRequired=2;
     }
 
     //Fx07 
     function ldVxDT(opcode)
     {
         _generalRegisters[(opcode&0xF00)>>8]=_delayTimer.register;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx0A 
@@ -451,34 +517,39 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
                 break;
             }
         }
+        _operationCyclesRequired=2;
     }
 
     //Fx15 
     function ldDTVx(opcode)
     {
         _delayTimer.register=_generalRegisters[(opcode&0xF00)>>8];
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx18 
     function ldSTVx(opcode)
     {
         _soundTimer.register=_generalRegisters[(opcode&0xF00)>>8];
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx1E 
     function addIVx(opcode)
     {
         _indexRegister[0]+=_generalRegisters[(opcode&0xF00)>>8];
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx29 
     function ldFVx(opcode)
     {
         _indexRegister[0]=_generalRegisters[(opcode&0xF00)>>8]*5;
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx33
@@ -488,7 +559,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _memoryManager.writeByte(_indexRegister[0],Math.floor(value/100));
         _memoryManager.writeByte(_indexRegister[0]+1,Math.floor(value/10)%10);
         _memoryManager.writeByte(_indexRegister[0]+2,(value%100)%10);
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx55
@@ -501,7 +573,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
             _memoryManager.writeByte(_indexRegister[0]+i,_generalRegisters[i]);
         }
 
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 
     //Fx65
@@ -512,6 +585,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         {
             _generalRegisters[i]=_memoryManager.readByte(_indexRegister[0]+1);
         }
-        pc[0]+=2;
+        _pc[0]+=2;
+        _operationCyclesRequired=2;
     }
 }

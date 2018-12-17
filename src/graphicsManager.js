@@ -1,17 +1,24 @@
 'use strict';
 
-export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,screenHeight,pixelRenderer)
+export function GraphicsManager(pixelRenderer,screenWidth,screenHeight,clockFrequency,framesPerSecond=60)
 {
     let _framesPerSecond = framesPerSecond;
     let _clockFrequency=clockFrequency;
-    let _clockCyclesPerUpdate = _clockFrequency/_framesPerSecond;
+    let _cyclesPerUpdate;
     const _screenWidth=screenWidth;
     const _screenHeight=screenHeight;
     const _pixelRenderer = pixelRenderer;
     let _cyclesProcessed;
     let _screenData;
     
-    Object.defineProperty(GraphicsManager.prototype,'clockFrequency',{
+    Object.defineProperty(this,'cyclesPerUpdate',{
+        get:function()
+        {
+            return _cyclesPerUpdate;
+        }
+    });
+
+    Object.defineProperty(this,'clockFrequency',{
         get:function()
         {
             return _clockFrequency
@@ -19,11 +26,11 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
         set:function(value)
         {
             _clockFrequency=value;
-            _clockCyclesPerUpdate = _clockFrequency/_framesPerSecond;
+            _cyclesPerUpdate = calculateCyclesPerUpdate();
         }
     });
 
-    Object.defineProperty(GraphicsManager.prototype,'framesPerSecond',{
+    Object.defineProperty(this,'framesPerSecond',{
         get:function()
         {
             return _framesPerSecond;
@@ -31,7 +38,7 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
         set:function(value)
         {
             _framesPerSecond = value;
-            _clockCyclesPerUpdate = _clockFrequency/_framesPerSecond;
+            _cyclesPerUpdate = calculateCyclesPerUpdate();
         }
     });
 
@@ -42,20 +49,38 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
         }
     });
 
+    Object.defineProperty(this,'screenData',{
+        get:function()
+        {
+            return _screenData;
+        }
+    })
+
     this.initialize = function()
     {
+        _cyclesProcessed=0;
+        _cyclesPerUpdate = calculateCyclesPerUpdate();
         _screenData = new Uint8Array(_screenWidth*_screenHeight);     
         this.clearScreen();  
     }
 
-    this.clearScreen = function()
+    this.reset = function()
     {
-        _cyclesProcessed=0;
-        
+        _cyclesProcessed = 0;
+
         for(let index=0;index<_screenWidth*_screenHeight;index++)
         {
             _screenData[index]=0;
         }
+    }
+
+    this.clearScreen = function()
+    {        
+        for(let index=0;index<_screenWidth*_screenHeight;index++)
+        {
+            _screenData[index]=0;
+        }
+        
     }
 
     this.drawPixel = function(x,y,data)
@@ -85,9 +110,9 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
     {
         _cyclesProcessed+=cyclesToProcess;
         
-        while(_cyclesProcessed >= _clockCyclesPerUpdate)
+        while(_cyclesProcessed >= _cyclesPerUpdate)
         {
-            _cyclesProcessed-=cyclesToProcess;
+            _cyclesProcessed-=_cyclesPerUpdate;
 
             for(let index=0;index<_screenHeight*_screenWidth;index++)
             {
@@ -97,6 +122,11 @@ export function GraphicsManager(framesPerSecond,clockFrequency,screenWidth,scree
             }
         }
     }
+
+    function calculateCyclesPerUpdate()
+    {
+        return Math.floor(_clockFrequency/_framesPerSecond);
+    }    
 }
 
 

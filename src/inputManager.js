@@ -1,16 +1,15 @@
 'use strict';
 
-export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandler)
+export function InputManager(keyboardHandler,clockFrequency,pollingFrequency=1000)
 {
     const _keyboardHandler = keyboardHandler;
     let _clockFrequency = clockFrequency;
     let _pollingFrequency = pollingFrequency;
-    let _cyclesPerUpdate = clockFrequency/pollingFrequency;
+    let _cyclesPerUpdate;
     let _cyclesProcessed;
     let _keyBuffer;
     let _register;
   
-    
     Object.defineProperty(this,'cyclesPerUpdate',{
         get:function()
         {
@@ -33,7 +32,7 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
         set:function(value)
         {
             _clockFrequency=value;
-            _cyclesPerUpdate = _clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate = calculateCyclesPerUpdate();
         }
     })
 
@@ -45,7 +44,7 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
         set:function(value)
         {
             _pollingFrequency=value;
-            _cyclesPerUpdate = _clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate = calculateCyclesPerUpdate();
         }
     });
 
@@ -61,6 +60,7 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
         _cyclesProcessed=0;
         _keyBuffer=0;
         _register=0;
+        _cyclesPerUpdate = calculateCyclesPerUpdate();
         _keyboardHandler.registerKeyDownCallback(onKeyPressDown);
         _keyboardHandler.registerKeyUpCallback(onKeyPressUp);
     }
@@ -102,4 +102,9 @@ export function InputManager(pollingFrequency=1000,clockFrequency,keyboardHandle
             _keyBuffer&=(~(1<<keyValue))&0xFFFF;
         }
     }
+
+    function calculateCyclesPerUpdate()
+    {
+        return Math.floor(_clockFrequency/_pollingFrequency);
+    }    
 }

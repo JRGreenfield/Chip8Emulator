@@ -1,6 +1,6 @@
 'use strict';
 
-export function DelayTimer(pollingFrequency,clockFrequency)
+export function DelayTimer(clockFrequency,pollingFrequency=60)
 {
     let _register;
     let _cyclesProcessed;
@@ -23,7 +23,7 @@ export function DelayTimer(pollingFrequency,clockFrequency)
         set:function(value)
         {
             _pollingFrequency=value;
-            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate=calculateCyclesPerUpdate();
         }
     });
 
@@ -35,7 +35,7 @@ export function DelayTimer(pollingFrequency,clockFrequency)
         set:function(value)
         {
             _clockFrequency=value;
-            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate=calculateCyclesPerUpdate();
         }
     });
 
@@ -60,7 +60,7 @@ export function DelayTimer(pollingFrequency,clockFrequency)
     this.initialize = function()
     {
         _register = new Uint8Array(1);
-        _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        _cyclesPerUpdate=calculateCyclesPerUpdate();
         _cyclesProcessed=0;
     }
 
@@ -88,4 +88,9 @@ export function DelayTimer(pollingFrequency,clockFrequency)
             _register[0]--;
         }
     }
+
+    function calculateCyclesPerUpdate()
+    {
+        return Math.floor(_clockFrequency/_pollingFrequency);
+    }    
 }

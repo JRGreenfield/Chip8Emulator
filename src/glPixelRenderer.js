@@ -90,6 +90,12 @@ export function GLPixelRenderer(canvasName,screenWidth,screenHeight)
         _screenData[x+(y*_screenWidth)]=data;
     }
 
+    this.reset = function()
+    {
+        this.clearScreen();
+    }
+
+
     this.refresh = function()
     {
         _gl.clearColor(_backgroundColor[0],_backgroundColor[1],_backgroundColor[2],_backgroundColor[3]);

@@ -19,6 +19,11 @@ export function AudioRenderer()
         _oscillator.frequency.value = 800;
     }
 
+    this.reset = function()
+    {
+        _oscillator.stop();
+    }
+
     this.startBeepSound=function()
     {
         _oscillator.start();

@@ -1,6 +1,6 @@
 'use strict';
 
-export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
+export function SoundTimer(audioRenderer,clockFrequency,pollingFrequency=60)
 {
     let _register;
     let _pollingFrequency=pollingFrequency;
@@ -17,7 +17,7 @@ export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
         set:function(value)
         {
             _pollingFrequency=value;
-            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate=calculateCyclesPerUpdate();
         }
     });
 
@@ -29,7 +29,7 @@ export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
         set:function(value)
         {
             _clockFrequency=value;
-            _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+            _cyclesPerUpdate=calculateCyclesPerUpdate();
         }
     });
 
@@ -71,7 +71,7 @@ export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
     {
         _register = new Uint8Array(1);
         _cyclesProcessed=0;
-        _cyclesPerUpdate=_clockFrequency/_pollingFrequency;
+        _cyclesPerUpdate=calculateCyclesPerUpdate();
     }
 
     this.reset = function()
@@ -104,5 +104,10 @@ export function SoundTimer(pollingFrequency=60,clockFrequency,audioRenderer)
             }
         }
     }
+
+    function calculateCyclesPerUpdate()
+    {
+        return Math.floor(_clockFrequency/_pollingFrequency);
+    }    
 
 }

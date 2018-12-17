@@ -2,7 +2,7 @@ import test from 'ava';
 import {MemoryManager} from '../src/memoryManager';
 
 test('read/write byte test',t =>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	_mmu.writeByte(0x200,0xFF);
 	_mmu.writeByte(0x201,0XF0);
@@ -11,7 +11,7 @@ test('read/write byte test',t =>{
 });
 
 test('read/write word test',t =>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	_mmu.writeWord(0x200,0xFFF0);
 	t.is(_mmu.readWord(0x200),0xFFF0);
@@ -20,7 +20,7 @@ test('read/write word test',t =>{
 });
 
 test('reset test',t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	_mmu.writeByte(0x200,0xFF);
 	_mmu.reset();
@@ -28,7 +28,7 @@ test('reset test',t=>{
 });
 
 test('write byte restricted area exception test', t =>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	const error = t.throws(()=>{
 		_mmu.writeByte(0x199,0xFF);
@@ -37,42 +37,82 @@ test('write byte restricted area exception test', t =>{
 });
 
 test('write byte address out of range exception test', t =>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
+	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
-		_mmu.writeByte(0x4098,0xFF);
+		_mmu.writeByte(0x1000,0xFF);
 	});
 	t.is(error.message,'mmu:writeByte - address is out of range');
+	//CHECK: out of bounds min range
 	error = t.throws(()=>{
 		_mmu.writeByte(-1,0xFF);
 	});
 	t.is(error.message,'mmu:writeByte - address is out of range');
 });
 
-test('write word restricted area exception test', t=>{
-	let _mmu = new MemoryManager(4098);
+test('read byte address out of range exception test', t =>{
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	const error = t.throws(()=>{
+	//CHECK: out of bounds max range
+	let error = t.throws(()=>{
+		_mmu.readByte(0x1000);
+	});
+	t.is(error.message,'mmu:readByte - address is out of range');
+	//CHECK: out of bounds min range 
+	error = t.throws(()=>{
+		_mmu.readByte(-1);
+	});
+	t.is(error.message,'mmu:readByte - address is out of range');
+});
+
+test('write word restricted area exception test', t=>{
+	let _mmu = new MemoryManager(4096);
+	_mmu.initialize();
+	//CHECK:out of bounds range max range
+	let error = t.throws(()=>{
 		_mmu.writeWord(0x199,0xFF);
 	});
 	t.is(error.message,'mmu:writeWord - restricted area of memory');
+	//CHECK: out of bounds min range 
+	error = t.throws(()=>{
+		_mmu.writeWord(-1);
+	});
+	t.is(error.message,'mmu:writeWord - address is out of range');
 });
 
 test('write word address out of range exception test', t =>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
+	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
-		_mmu.writeWord(0x4097,0xFF);
+		_mmu.writeWord(0xFFF,0xFF);
 	});
 	t.is(error.message,'mmu:writeWord - address is out of range');
+	//CHECK: out of bounds min range
 	error = t.throws(()=>{
 		_mmu.writeWord(-1,0xFF);
 	});
 	t.is(error.message,'mmu:writeWord - address is out of range');
 });
 
+test('read word address out of range exception test', t =>{
+	let _mmu = new MemoryManager(4096);
+	_mmu.initialize();
+	//CHECK: out of bounds max range
+	let error = t.throws(()=>{
+		_mmu.readWord(0xFFF);
+	});
+	t.is(error.message,'mmu:readWord - address is out of range');
+	//CHECK: out of bounds min range 
+	error = t.throws(()=>{
+		_mmu.readWord(-1);
+	});
+	t.is(error.message,'mmu:readWord - address is out of range');
+});
+
 test('0 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(0),0xF0);
 	t.is(_mmu.readByte(1),0x90);
@@ -82,7 +122,7 @@ test('0 sprite test', t => {
 });
 
 test('1 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(5),0x20);
 	t.is(_mmu.readByte(6),0x60);
@@ -92,7 +132,7 @@ test('1 sprite test', t => {
 });
 
 test('2 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(10),0xF0);
 	t.is(_mmu.readByte(11),0x10);
@@ -102,7 +142,7 @@ test('2 sprite test', t => {
 });
 
 test('3 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(15),0xF0);
 	t.is(_mmu.readByte(16),0x10);
@@ -112,7 +152,7 @@ test('3 sprite test', t => {
 });
 
 test('4 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(20),0x90);
 	t.is(_mmu.readByte(21),0x90);
@@ -122,7 +162,7 @@ test('4 sprite test', t => {
 });
 
 test('5 sprite test', t => {
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(25),0xF0);
 	t.is(_mmu.readByte(26),0x80);
@@ -132,7 +172,7 @@ test('5 sprite test', t => {
 });
 
 test('6 sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(30),0xF0);
 	t.is(_mmu.readByte(31),0x80);
@@ -142,7 +182,7 @@ test('6 sprite test', t=>{
 });
 
 test('7 sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(35),0xF0);
 	t.is(_mmu.readByte(36),0x10);
@@ -152,7 +192,7 @@ test('7 sprite test', t=>{
 });
 
 test('8 sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(40),0xF0);
 	t.is(_mmu.readByte(41),0x90);
@@ -162,7 +202,7 @@ test('8 sprite test', t=>{
 });
 
 test('9 sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(45),0xF0);
 	t.is(_mmu.readByte(46),0x90);
@@ -172,7 +212,7 @@ test('9 sprite test', t=>{
 });
 
 test('A sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(50),0xF0);
 	t.is(_mmu.readByte(51),0x90);
@@ -182,7 +222,7 @@ test('A sprite test', t=>{
 });
 
 test('B sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(55),0xE0);
 	t.is(_mmu.readByte(56),0x90);
@@ -192,7 +232,7 @@ test('B sprite test', t=>{
 });
 
 test('C sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(60),0xF0);
 	t.is(_mmu.readByte(61),0x80);
@@ -202,7 +242,7 @@ test('C sprite test', t=>{
 });
 
 test('D sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(65),0xE0);
 	t.is(_mmu.readByte(66),0x90);
@@ -212,7 +252,7 @@ test('D sprite test', t=>{
 });
 
 test('E sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(70),0xF0);
 	t.is(_mmu.readByte(71),0x80);
@@ -222,7 +262,7 @@ test('E sprite test', t=>{
 });
 
 test('F sprite test', t=>{
-	let _mmu = new MemoryManager(4098);
+	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
 	t.is(_mmu.readByte(75),0xF0);
 	t.is(_mmu.readByte(76),0x80);

@@ -36,7 +36,7 @@ export function MemoryManager(bankSize)
 
     this.writeByte = function(address,value)
     {
-        if(address < 0 || address > _bankSize)
+        if(address < 0 || address >= _bankSize)
         {
             throw new ReferenceError('mmu:writeByte - address is out of range');
         }
@@ -51,9 +51,9 @@ export function MemoryManager(bankSize)
 
     this.readByte = function(address)
     {
-        if(address < 0 || address > _bankSize)
+        if(address < 0 || address >= _bankSize)
         {
-            alert("mmu:readByte - address is out of range");
+            throw new ReferenceError("mmu:readByte - address is out of range");
         }
 
         return _ram[address];
@@ -61,7 +61,7 @@ export function MemoryManager(bankSize)
 
     this.writeWord = function(address,value)
     {
-        if(address < 0 || address > _bankSize -1)
+        if(address < 0 || address >= _bankSize -2)
         {
             throw new ReferenceError('mmu:writeWord - address is out of range');
         }
@@ -77,9 +77,9 @@ export function MemoryManager(bankSize)
 
     this.readWord = function(address)
     {
-        if(address < 0 || address > _bankSize -1)
+        if(address < 0 || address >= _bankSize - 2)
         {
-            alert("mmu:writeWord - address is out of range");
+            throw new ReferenceError("mmu:readWord - address is out of range");
         }
 
         return (_ram[address]<<8)+(_ram[address+1]);

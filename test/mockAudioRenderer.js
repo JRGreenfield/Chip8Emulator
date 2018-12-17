@@ -16,6 +16,11 @@ export function MockAudioRenderer()
 
     }
 
+    this.reset = function()
+    {
+        
+    }
+
     this.startBeepSound=function()
     {
        _active=true;
