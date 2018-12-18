@@ -124,6 +124,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
                     case 0xEE:
                         ret(opcode);
                         break;
+                    default:
+                        throw new ReferenceError("cpu:execute - invalid opcode");
                 }
                 break;
             case 0x1000:
@@ -177,6 +179,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
                     case 0xE:
                         shlVx(opcode);
                         break;
+                    default:
+                        throw new ReferenceError("cpu:execute - invalid opcode");
                 }
                 break;
             case 0x9000:
@@ -227,8 +231,12 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
                     case 0x65:
                         ldVxI(opcode);
                         break;
+                    default:
+                        throw new ReferenceError("cpu:execute - invalid opcode");
                 }
                 break;
+            default:
+                throw new ReferenceError("cpu:execute - invalid opcode");
         }
     }
 
@@ -345,11 +353,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //8xy5 
     function subVxVy(opcode)
     {
-        let vx = (opcode&0xF00)>>8;
-        let vy = (opcode&0xF0)>>4;
-        let difference = _generalRegisters[vx]>_generalRegisters[vy];
-        _generalRegisters[0xF]=_generalRegisters[vx]>_generalRegisters[vy]?1:0;
-        _generalRegisters[vx]=difference;
+        _generalRegisters[0xF]=_generalRegisters[(opcode&0xF00)>>8]>_generalRegisters[(opcode&0xF0)>>4]?0:1;
+        _generalRegisters[(opcode&0xF00)>>8]-=_generalRegisters[(opcode&0xF0)>>4];
         _pc[0]+=2;
         _operationCyclesRequired=2;
     }
@@ -366,11 +371,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //8xy7 
     function subnVxVy(opcode)
     {
-        let vx = (opcode&0xF00)>>8;
-        let vy = (opcode&0xF0)>>4;
-        _generalRegisters[0xF]=_generalRegisters[vy]>_generalRegisters[vx]?0:1;
-        let difference = _generalRegisters[vy]-_generalRegisters[vx];
-        _generalRegisters[vx]=difference;
+        _generalRegisters[0xF]=_generalRegisters[(opcode&0xF00)>>8]>_generalRegisters[(opcode&0xF0)>>4]?0:1;
+        _generalRegisters[(opcode&0xF00)>>8]=_generalRegisters[(opcode&0xF0)>>4]-_generalRegisters[(opcode&0xF00)>>8];
         _pc[0]+=2;
         _operationCyclesRequired=2;
     }
@@ -390,12 +392,9 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     {
         if(_generalRegisters[(opcode&0xF00)>>8]!==_generalRegisters[(opcode&0xF0)>>4])
         {
-            _pc[0]+=4;
-        }
-        else
-        {
             _pc[0]+=2;
         }
+        _pc[0]+=2;    
         _operationCyclesRequired=2;
     }
 
@@ -417,9 +416,8 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //Cxkk 
     function rndVxN(opcode)
     {
-        let value = opcode & 0xFF;
         let randomNumber=Math.floor(Math.random() * Math.floor(256));
-        _generalRegisters[(opcode & 0xF00)>>8]=value&randomNumber;
+        _generalRegisters[(opcode & 0xF00)>>8]=(opcode&0xFF)&randomNumber;
         _pc[0]+=2;
         _operationCyclesRequired=2;
     }
@@ -428,12 +426,12 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     function drwVxVyN(opcode)
     {
         _generalRegisters[0xF]=0;
-        for(let rowIndex=0;rowIndex<(opcode&0xF);rowIndex++)
+        for(let rowIndex=0;rowIndex<=(opcode&0xF);rowIndex++)
         {
             let data = _memoryManager.readByte(_indexRegister[0]+rowIndex);
             if(_graphicsManager.drawPixelByte(_generalRegisters[(opcode & 0xF00)>>8],_generalRegisters[(opcode & 0xF0>>4)]+rowIndex,data))
             {
-                generalRegisters[0xF]=1;
+                _generalRegisters[0xF]=1;
             } 
         }
         _pc[0]+=2;
@@ -442,31 +440,23 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
 
     //Ex9E 
     function skpVx(opcode)
-    {
-        let key = (opcode & 0xF00)>>8;
-        if(_inputManager.register&(1<<key))
-        {
-            _pc[0]+=4;
-        }
-        else
+    {    
+        if((1<<_generalRegisters[(opcode&0xF00)>>8])&_inputManager.register)
         {
             _pc[0]+=2;
         }
-        _operationCyclesRequired=2;
+        _pc[0]+=2;
+        onCyclesRequired=2;
     }
 
     //ExA1 
     function sknpVx(opcode)
     {
-        let key = (opcode & 0xF00)>>8;
-        if(!(_inputManager.register&(1<<key)))
-        {
-            _pc[0]+=4;
-        }
-        else
+        if(!((1<<_generalRegisters[(opcode&0xF00)>>8])&_inputManager.register))
         {
             _pc[0]+=2;
         }
+        _pc[0]+=2;     
         _operationCyclesRequired=2;
     }
 
@@ -481,16 +471,19 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //Fx0A 
     function ldVxN(opcode)
     {
-        for(let i=0;i<16;i++)
+        if(_inputManager.register)
         {
-            if(_inputManager.register&(1<<key))
+            let register = _inputManager.register;
+            let shiftIndex = 0;
+            while(register !== 0)
             {
-                _generalRegisters[(opcode&0xF00)>>8]=i;
-                _pc[0]+=2;
-                break;
+                register>>=1;
+                ++shiftIndex;
             }
+            _generalRegisters[(opcode&0xF00)>>8]=--shiftIndex;
+            _pc[0]+=2;
         }
-        _operationCyclesRequired=2;
+        _operationCyclesRequired=0;
     }
 
     //Fx15 
