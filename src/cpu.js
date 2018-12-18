@@ -243,7 +243,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //00EE 
     function ret(opcode)
     {
-        _pc[0]=_sp[0]--;
+        _pc[0]=_stack[_sp[0]--];
         _operationCyclesRequired=2;
     }
 
@@ -266,42 +266,21 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //3xkk
     function seVxNN(opcode)
     {
-        if(_generalRegisters[(opcode & 0xF00)>>8]===(opcode&0xFF))
-        {
-            _pc[0]+=4;
-        }
-        else
-        {
-            _pc[0]+=2;
-        }
+        _generalRegisters[(opcode & 0xF00)>>8]===(opcode&0xFF)?_pc[0]+=4:_pc[0]+=2;
         _operationCyclesRequired=2;
     }
 
     //4xkk
     function sneVxNN(opcode)
     {
-        if(_generalRegisters[(opcode & 0xF00)>>8]!==(opcode&0xFF))
-        {
-            _pc[0]+=4;
-        }
-        else
-        {
-            _pc[0]+=2;
-        }
+        _generalRegisters[(opcode & 0xF00)>>8]!==(opcode&0xFF)?_pc[0]+=4:_pc[0]+=2;
         _operationCyclesRequired=2;
     }
 
     //5xy0
     function seVxVy(opcode)
     {
-        if(_generalRegisters[(opcode & 0xF00)>>8] === _generalRegisters[(opcode & 0xF0)>>4])
-        {
-            _pc[0]+=4;
-        }
-        else
-        {
-            _pc[0]+=2;
-        }
+        _generalRegisters[(opcode & 0xF00)>>8] === _generalRegisters[(opcode & 0xF0)>>4]?_pc[0]+=4:_pc[0]+=2;
         _operationCyclesRequired=2;
     }
 
@@ -448,21 +427,15 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //Dxyn 
     function drwVxVyN(opcode)
     {
-        let vx = opcode & 0xF00;
-        let vy = opcode & 0xF0;
-        let rows = opcode & 0xF;
-
         _generalRegisters[0xF]=0;
-
-        for(let i=0;i<rows;i++)
+        for(let rowIndex=0;rowIndex<(opcode&0xF);rowIndex++)
         {
-            let data = _memoryManager.readByte(_indexRegister[0]+i);
-            if(_graphicsManager.drawPixel(vx,vy,data))
+            let data = _memoryManager.readByte(_indexRegister[0]+rowIndex);
+            if(_graphicsManager.drawPixelByte(_generalRegisters[(opcode & 0xF00)>>8],_generalRegisters[(opcode & 0xF0>>4)]+rowIndex,data))
             {
-                _generalRegisters[0xF]=1;
-            }
+                generalRegisters[0xF]=1;
+            } 
         }
-
         _pc[0]+=2;
         _operationCyclesRequired=2;
     }
@@ -566,13 +539,10 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //Fx55
     function ldIV0Vx(opcode)
     {
-        let vx = (opcode & 0xF00) >> 8;
-
-        for(let i = 0; i <= vx;i++)
+        for(let i = 0; i <= (opcode & 0xF00)>>8;i++)
         {
             _memoryManager.writeByte(_indexRegister[0]+i,_generalRegisters[i]);
         }
-
         _pc[0]+=2;
         _operationCyclesRequired=2;
     }
@@ -580,8 +550,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     //Fx65
     function ldVxI(opcode)
     {
-        let vx = (opcode & 0xF00) >> 8;
-        for(let i=0;i<=vx;i++)
+        for(let i=0;i<=(opcode & 0xF00)>>8;i++)
         {
             _generalRegisters[i]=_memoryManager.readByte(_indexRegister[0]+1);
         }

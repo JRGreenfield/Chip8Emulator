@@ -38,21 +38,21 @@ test('draw test',t => {
     let _graphicsManager = new GraphicsManager(_pixelRenderer,64,32,1760000,60);
     _graphicsManager.initialize();   
     //CHECK: draw a pixel to the screen at (62,0) and check to see if screen data is updated and flipped data is false
-    let flipped=_graphicsManager.drawPixel(62,0,1);
+    let flipped=_graphicsManager.drawPixelByte(62,0,0xFF);
     t.is(flipped,false);
     t.is(_graphicsManager.screenData[62],1);
     //CHECK: draw a pixel to the screen again at (62,0) and check to see if screen data is reset and flipped data is true
-    flipped=_graphicsManager.drawPixel(62,0,1);
+    flipped=_graphicsManager.drawPixelByte(62,0,0xFF);
     t.is(flipped,true);
     t.is(_graphicsManager.screenData[62],0);
     //CHECK: xor flip on set to unset detection
-    flipped=_graphicsManager.drawPixel(64,32,1);
+    flipped=_graphicsManager.drawPixelByte(64,32,0xFF);
     t.is(flipped,false);
     t.is(_graphicsManager.screenData[0],1);
-    flipped=_graphicsManager.drawPixel(64,32,1);
+    flipped=_graphicsManager.drawPixelByte(64,32,0xFF);
     t.is(flipped,true);
     t.is(_graphicsManager.screenData[0],0);
-    flipped=_graphicsManager.drawPixel(64,32,0);
+    flipped=_graphicsManager.drawPixelByte(64,32,0x0);
     t.is(flipped,false);
     t.is(_graphicsManager.screenData[0],0);
 });
@@ -63,7 +63,7 @@ test('update test',t =>{
     let _graphicsManager = new GraphicsManager(_pixelRenderer,64,32,1760000,60);
     _graphicsManager.initialize();
     t.is(_pixelRenderer.screenData[0],0);
-    _graphicsManager.drawPixel(0,0,1);
+    _graphicsManager.drawPixelByte(0,0,0xFF);
     t.is(_pixelRenderer.screenData[0],0);    
     _graphicsManager.update(29333);
     t.is(_pixelRenderer.screenData[0],1);
@@ -77,7 +77,7 @@ test('reset test',t =>{
     _pixelRenderer.initialize();
     let _graphicsManager = new GraphicsManager(_pixelRenderer,64,32,1760000,60);
     _graphicsManager.initialize();
-    _graphicsManager.drawPixel(0,0,1);
+    _graphicsManager.drawPixelByte(0,0,0xFF);
     _graphicsManager.update(22);
     _graphicsManager.reset();
     t.is(_graphicsManager.screenData[0],0);
@@ -90,7 +90,7 @@ test('clear screen test',t=>{
     let _graphicsManager = new GraphicsManager(_pixelRenderer,64,32,1760000,60);
     _graphicsManager.initialize();
     t.is(_graphicsManager.screenData[0],0);
-    _graphicsManager.drawPixel(0,0,1);
+    _graphicsManager.drawPixelByte(0,0,0xFF);
     t.is(_graphicsManager.screenData[0],1);
     _graphicsManager.update(2340);
     _graphicsManager.clearScreen();

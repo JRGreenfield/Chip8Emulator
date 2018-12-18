@@ -27,10 +27,10 @@ function defaultStackValueCheck(hardwareInterface,t,registersToSkip="")
 {
     for(let index=0;index<=0xF;index++)
     {
-        let registerValue = index.toString(16);
-        if(!registersToSkip.includes(registerValue))
+        let stackIndex = index.toString(16);
+        if(!registersToSkip.includes(stackIndex))
         {
-            let descriptorValue = Object.getOwnPropertyDescriptor(hardwareInterface.cpu,'s'+registerValue).get();
+            let descriptorValue = Object.getOwnPropertyDescriptor(hardwareInterface.cpu,'s'+stackIndex).get();
             t.is(descriptorValue,0);
         }
     }
@@ -47,10 +47,26 @@ test('initialization', t => {
     t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
 });
 
+test ('RET 0x00EE',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0x2202);
+    _hardwareInterface.memoryManager.writeWord(0x202,0x00EE);
+    _hardwareInterface.update(4);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.pc,0x200);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.i,0)
+    defaultRegisterValueCheck(_hardwareInterface,t);
+    t.is(_hardwareInterface.cpu.s1,0x200);
+    defaultStackValueCheck(_hardwareInterface,t,'1');
+    _hardwareInterface.update(2);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
+})
+
 test('JP 0x1nnn',t =>{
     let _hardwareInterface = new MockHardwareInterface();
     _hardwareInterface.initialize();
-    //CHECK: JP 0x1nnn 0x1300
     _hardwareInterface.memoryManager.writeWord(0x200,0x1300);
     _hardwareInterface.update(1);
     t.is(_hardwareInterface.cpu.pc,0x300);
@@ -342,6 +358,52 @@ test('JP V0,addr 0xBNNN',t=>{
     _hardwareInterface.memoryManager.writeWord(0xF0F,0xBFFF);
     _hardwareInterface.update(1);
     t.is(_hardwareInterface.cpu.pc,0xE);
+});
+
+test('DRW Vx,Vy,n 0xDxyn',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0xA300);
+    _hardwareInterface.memoryManager.writeWord(0x202,0x603F);
+    _hardwareInterface.memoryManager.writeWord(0x204,0x6120);
+    _hardwareInterface.memoryManager.writeWord(0x206,0xD011);
+    _hardwareInterface.memoryManager.writeByte(0x300,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x301,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x302,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x303,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x304,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x305,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x306,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x307,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x308,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x309,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30A,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30B,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30C,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30D,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30E,0xFF);
+    _hardwareInterface.memoryManager.writeByte(0x30F,0xFF);
+    _hardwareInterface.update(10);
+    //t.is(_hardwareInterface.cpu.v0,0xFF);
+    //t.is(_hardwareInterface.cpu.v1,0xFF);
+    t.is(_hardwareInterface.cpu.vf,0x0);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.pc,0x208);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.i,0x300);
+    defaultRegisterValueCheck(_hardwareInterface,t,'01f');
+    defaultRegisterValueCheck(_hardwareInterface,t,'01f');
+   
+    t.is(_hardwareInterface.graphicsManager.screenData[64],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[63],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[0],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[1],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[2],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[3],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[4],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[5],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[6],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[7],0);
 });
 
 test('LD Vx,DT 0xFx07',t=>{

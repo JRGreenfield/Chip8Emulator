@@ -39,12 +39,10 @@ test('write byte restricted area exception test', t =>{
 test('write byte address out of range exception test', t =>{
 	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
 		_mmu.writeByte(0x1000,0xFF);
 	});
 	t.is(error.message,'mmu:writeByte - address is out of range');
-	//CHECK: out of bounds min range
 	error = t.throws(()=>{
 		_mmu.writeByte(-1,0xFF);
 	});
@@ -54,12 +52,10 @@ test('write byte address out of range exception test', t =>{
 test('read byte address out of range exception test', t =>{
 	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
 		_mmu.readByte(0x1000);
 	});
 	t.is(error.message,'mmu:readByte - address is out of range');
-	//CHECK: out of bounds min range 
 	error = t.throws(()=>{
 		_mmu.readByte(-1);
 	});
@@ -69,12 +65,10 @@ test('read byte address out of range exception test', t =>{
 test('write word restricted area exception test', t=>{
 	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	//CHECK:out of bounds range max range
 	let error = t.throws(()=>{
 		_mmu.writeWord(0x199,0xFF);
 	});
 	t.is(error.message,'mmu:writeWord - restricted area of memory');
-	//CHECK: out of bounds min range 
 	error = t.throws(()=>{
 		_mmu.writeWord(-1);
 	});
@@ -84,12 +78,10 @@ test('write word restricted area exception test', t=>{
 test('write word address out of range exception test', t =>{
 	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
 		_mmu.writeWord(0xFFF,0xFF);
 	});
 	t.is(error.message,'mmu:writeWord - address is out of range');
-	//CHECK: out of bounds min range
 	error = t.throws(()=>{
 		_mmu.writeWord(-1,0xFF);
 	});
@@ -99,12 +91,10 @@ test('write word address out of range exception test', t =>{
 test('read word address out of range exception test', t =>{
 	let _mmu = new MemoryManager(4096);
 	_mmu.initialize();
-	//CHECK: out of bounds max range
 	let error = t.throws(()=>{
 		_mmu.readWord(0xFFF);
 	});
 	t.is(error.message,'mmu:readWord - address is out of range');
-	//CHECK: out of bounds min range 
 	error = t.throws(()=>{
 		_mmu.readWord(-1);
 	});

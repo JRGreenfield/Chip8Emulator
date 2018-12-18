@@ -83,24 +83,24 @@ export function GraphicsManager(pixelRenderer,screenWidth,screenHeight,clockFreq
         
     }
 
-    this.drawPixel = function(x,y,data)
+    this.drawPixelByte = function(x,y,data)
     {
         let pixelCleared=false;
+        let testData = 0xFF;
         x%=_screenWidth;
         y%=_screenHeight;
        
-        for(let i=0;i<8;i++)
+        for(let pixelIndex=0,rowIndex=7;pixelIndex<8;pixelIndex++,rowIndex--)
         {
-            let pixelValue = data & (1<<i);
-            let index = ((x+i)%_screenWidth)+(y*_screenWidth);
-            let value = _screenData[index] ^ pixelValue;
-            
-            if(value===0 && _screenData[index]===1)
+            let pixelValue = (testData & (1<<rowIndex))>>rowIndex;
+            let index = ((x+pixelIndex)%_screenWidth)+(y*_screenWidth);
+           
+            if(pixelValue === 1 && _screenData[index]===1)
             {
                 pixelCleared = true;
             }
 
-            _screenData[index]=value;
+            _screenData[index]=_screenData[index] ^ pixelValue;
         }
 
         return pixelCleared;
