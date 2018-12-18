@@ -8,6 +8,7 @@ import {SoundTimer} from '../src/soundTimer';
 import {GraphicsManager} from '../src/graphicsManager';
 import {MemoryManager} from '../src/memoryManager';
 import {InputManager} from '../src/inputManager';
+import {MockRandomNumberGenerator} from '../test/mockRandomNumberGenerator';
 import {Cpu} from '../src/cpu';
 
 export function MockHardwareInterface()
@@ -20,7 +21,8 @@ export function MockHardwareInterface()
     let _audioRenderer = new MockAudioRenderer();
     let _soundTimer = new SoundTimer(_audioRenderer,1760000,60);
     let _delayTimer = new DelayTimer(1760000,60);
-    let _cpu = new Cpu(_graphicsManager,_memoryManager,_inputManager,_delayTimer,_soundTimer,0x200,16);
+    let _randomNumberGenerator = new MockRandomNumberGenerator();
+    let _cpu = new Cpu(_graphicsManager,_memoryManager,_inputManager,_delayTimer,_soundTimer,0x200,_randomNumberGenerator,16);
 
     Object.defineProperty(this,'cpu',{
         get:function()

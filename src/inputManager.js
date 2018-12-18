@@ -108,3 +108,5 @@ export function InputManager(keyboardHandler,clockFrequency,pollingFrequency=100
         return Math.floor(_clockFrequency/_pollingFrequency);
     }    
 }
+
+Object.seal(InputManager);

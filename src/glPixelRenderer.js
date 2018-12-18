@@ -95,7 +95,6 @@ export function GLPixelRenderer(canvasName,screenWidth,screenHeight)
         this.clearScreen();
     }
 
-
     this.refresh = function()
     {
         _gl.clearColor(_backgroundColor[0],_backgroundColor[1],_backgroundColor[2],_backgroundColor[3]);
@@ -154,9 +153,10 @@ export function GLPixelRenderer(canvasName,screenWidth,screenHeight)
             gl.deleteShader(shader);
             return null;
         }
-      
         return shader;
     }
 }
+
+Object.seal(GLPixelRenderer);
 
 

@@ -3,7 +3,6 @@
 import test from 'ava';
 import {MockHardwareInterface} from './mockHardwareInterface';
 
-
 function checkRegisterValue(hardwareInterface,t,register,value)
 {
     let descriptorValue = Object.getOwnPropertyDescriptor(hardwareInterface.cpu,'v'+register.toString(16)).get();
@@ -44,6 +43,43 @@ test('initialization', t => {
     t.is(_hardwareInterface.cpu.i,0)
     defaultRegisterValueCheck(_hardwareInterface,t);
     defaultStackValueCheck(_hardwareInterface,t);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
+});
+
+test('CLS 0x00E0',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0xA300);
+    _hardwareInterface.memoryManager.writeWord(0x202,0x6000);
+    _hardwareInterface.memoryManager.writeWord(0x204,0x6100);
+    _hardwareInterface.memoryManager.writeWord(0x206,0xD011);
+    _hardwareInterface.memoryManager.writeByte(0x300,0xFF);
+    _hardwareInterface.update(12);
+    t.is(_hardwareInterface.graphicsManager.screenData[0],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[1],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[2],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[3],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[4],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[5],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[6],1);
+    t.is(_hardwareInterface.graphicsManager.screenData[7],1); 
+    _hardwareInterface.memoryManager.writeWord(0x208,0x00E0);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.pc,0x20A);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.i,0x300);
+    defaultRegisterValueCheck(_hardwareInterface,t);
+    defaultStackValueCheck(_hardwareInterface,t);
+    t.is(_hardwareInterface.graphicsManager.screenData[0],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[1],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[2],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[3],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[4],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[5],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[6],0);
+    t.is(_hardwareInterface.graphicsManager.screenData[7],0); 
+    _hardwareInterface.update(2);
     t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
 });
 
@@ -528,6 +564,54 @@ test('DRW Vx,Vy,n 0xDxyn',t=>{
     t.is(_hardwareInterface.graphicsManager.screenData[965],0);
     t.is(_hardwareInterface.graphicsManager.screenData[966],0);
     t.is(_hardwareInterface.cpu.vf,0x1);
+});
+
+test('SKP Vx 0xEx9E',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0x6001);
+    _hardwareInterface.memoryManager.writeWord(0x202,0xE09E);
+    _hardwareInterface.inputManager.pollingFrequency=1760000;
+    t.is( _hardwareInterface.inputManager.cyclesPerUpdate,1);
+    _hardwareInterface.keyboardHandler.recordKeyPressDown(49,false,false,false,false);
+    _hardwareInterface.update(3);
+    t.is( _hardwareInterface.inputManager.register,2);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.pc,0x206);
+    t.is(_hardwareInterface.cpu.v0,1);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.i,0);
+    defaultRegisterValueCheck(_hardwareInterface,t,'0');
+    defaultStackValueCheck(_hardwareInterface,t);
+    _hardwareInterface.update(2);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
+    _hardwareInterface.memoryManager.writeWord(0x206,0x6E00);
+    _hardwareInterface.memoryManager.writeWord(0x208,0xEE9E);
+    _hardwareInterface.update(4);
+    t.is(_hardwareInterface.cpu.pc,0x20A);
+});
+
+test('SKNP Vx ExA1',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0xE0A1);
+    _hardwareInterface.inputManager.pollingFrequency=1760000;
+    t.is( _hardwareInterface.inputManager.cyclesPerUpdate,1);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.pc,0x204);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.i,0);
+    defaultRegisterValueCheck(_hardwareInterface,t);
+    defaultStackValueCheck(_hardwareInterface,t);
+    _hardwareInterface.keyboardHandler.recordKeyPressDown(88,false,false,false,false);
+    _hardwareInterface.update(2);
+    t.is( _hardwareInterface.inputManager.register,1);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
+    _hardwareInterface.memoryManager.writeWord(0x204,0xE0A1);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.pc,0x206);
 });
 
 test('LD Vx,DT 0xFx07',t=>{

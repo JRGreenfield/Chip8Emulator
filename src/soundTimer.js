@@ -109,5 +109,6 @@ export function SoundTimer(audioRenderer,clockFrequency,pollingFrequency=60)
     {
         return Math.floor(_clockFrequency/_pollingFrequency);
     }    
-
 }
+
+Object.seal(SoundTimer);

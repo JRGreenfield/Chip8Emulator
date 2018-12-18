@@ -128,4 +128,6 @@ export function GraphicsManager(pixelRenderer,screenWidth,screenHeight,clockFreq
     }    
 }
 
+Object.seal(GraphicsManager);
+
 

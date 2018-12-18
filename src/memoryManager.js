@@ -85,3 +85,5 @@ export function MemoryManager(bankSize)
         return (_ram[address]<<8)+(_ram[address+1]);
     }
 }
+
+Object.seal(MemoryManager);

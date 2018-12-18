@@ -94,3 +94,5 @@ export function DelayTimer(clockFrequency,pollingFrequency=60)
         return Math.floor(_clockFrequency/_pollingFrequency);
     }    
 }
+
+Object.seal(DelayTimer);

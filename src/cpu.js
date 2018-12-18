@@ -1,12 +1,13 @@
 'use strict';
 
-export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTimer,pcStartAddress,stackSize)
+export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTimer,pcStartAddress,randomNumberGenerator,stackSize)
 {
     let _graphicsManager=graphicsManager;
     let _memoryManager=memoryManger;
     let _inputManager=inputManager;
     let _delayTimer=delayTimer;
     let _soundTimer=soundTimer;
+    let _randomNumberGenerator = randomNumberGenerator;
     let _generalRegisters;
     let _indexRegister;
     let _pc;
@@ -199,7 +200,17 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
                 drwVxVyN(opcode);
                 break;
             case 0xE000:
-                sknpVx(opcode);
+                switch(opcode&0xFF)
+                {
+                    case 0x9E:
+                        skpVx(opcode);
+                         break;
+                    case 0xA1:
+                        sknpVx(opcode);
+                        break; 
+                    default:
+                        throw new ReferenceError("cpu:execute - invalid opcode");
+                }
                 break;
             case 0xF000:
                 switch(opcode&0xFF)
@@ -244,7 +255,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     function cls(opcode) 
     {
         _graphicsManager.clearScreen();
-        pc[0]+=2;
+        _pc[0]+=2;
         _operationCyclesRequired=2;
     }
 
@@ -413,10 +424,13 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _operationCyclesRequired=2;
     }
 
-    //Cxkk 
+    /** 
+     *  Cxkk - RND Vx,byte Set Vx = random byte and kk
+     * @param {Number} opcode 
+     */ 
     function rndVxN(opcode)
     {
-        let randomNumber=Math.floor(Math.random() * Math.floor(256));
+        let randomNumber=_randomNumberGenerator.getRandomInteger(0,255);
         _generalRegisters[(opcode & 0xF00)>>8]=(opcode&0xFF)&randomNumber;
         _pc[0]+=2;
         _operationCyclesRequired=2;
@@ -446,7 +460,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
             _pc[0]+=2;
         }
         _pc[0]+=2;
-        onCyclesRequired=2;
+        _operationCyclesRequired=2;
     }
 
     //ExA1 
@@ -551,3 +565,5 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _operationCyclesRequired=2;
     }
 }
+
+Object.seal(Cpu);

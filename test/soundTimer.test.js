@@ -23,7 +23,6 @@ test('properties update', t =>{
     t.is(_soundTimer.clockFrequency,3520000);
 	t.is(_soundTimer.pollingFrequency,60);
     t.is(_soundTimer.cyclesPerUpdate,58666);
-    //CHECK: update polling frequency to check for updated cycles per update value
 	_soundTimer.pollingFrequency=120;
     t.is(_soundTimer.clockFrequency,3520000);
     t.is(_soundTimer.pollingFrequency,120);
@@ -34,14 +33,11 @@ test('register', t => {
     let _mockAudioRenderer = new MockAudioRenderer();
 	let _soundTimer = new SoundTimer(_mockAudioRenderer,1760000,60);
     _soundTimer.initialize();
-    //CHECK: on initialization, check that register is 0 and audio renderer is inactive
     t.is(_soundTimer.register,0);
     t.is(_mockAudioRenderer.active,false);
-    //CHECK: on register set to 1, check that register is set to 1 and audio renderer is active
     _soundTimer.register=1;
     t.is(_soundTimer.register,1);
     t.is(_mockAudioRenderer.active,true);
-    //CHECK: on register set to 0, check that register is set to 0 and audio renderer is inactive
     _soundTimer.register=0;
     t.is(_soundTimer.register,0);
     t.is(_mockAudioRenderer.active,false);

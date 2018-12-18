@@ -34,3 +34,5 @@ export function AudioRenderer()
         _oscillator.stop();
     }
 }
+
+Object.seal(AudioRenderer);
