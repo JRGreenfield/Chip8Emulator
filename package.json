@@ -11,6 +11,11 @@
   },
   "author": "Jody Greenfield",
   "license": "ISC",
+  "dependencies": {
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-scripts": "2.1.2"
+  },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
@@ -22,7 +27,6 @@
     "css-loader": "^0.28.11",
     "esm": "^3.0.53",
     "html-webpack-plugin": "^3.2.0",
-    "http-server": "^0.11.1",
     "mini-css-extract-plugin": "^0.4.0",
     "uglifyjs-webpack-plugin": "^1.2.6",
     "webpack": "^4.12.0",

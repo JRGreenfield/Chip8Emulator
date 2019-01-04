@@ -1,12 +1,10 @@
 'use strict';
 
-export function MemoryManager(bankSize)
-{
+export function MemoryManager(bankSize){
     const _bankSize = bankSize;
     let _ram;
 
-    this.initialize = function()
-    {
+    this.initialize = function(){
         _ram = new Uint8Array(bankSize);
         _ram[0]=0xF0;_ram[1]=0x90;_ram[2]=0x90;_ram[3]=0x90;_ram[4]=0xF0;//0
         _ram[5]=0x20;_ram[6]=0x60;_ram[7]=0x20;_ram[8]=0x20;_ram[9]=0x70;//1
@@ -26,62 +24,44 @@ export function MemoryManager(bankSize)
         _ram[75]=0xF0;_ram[76]=0x80;_ram[77]=0xF0;_ram[78]=0x80;_ram[79]=0x80;//F
     }
 
-    this.reset = function()
-    {
-        for(let i = 80;i<_bankSize;i++)
-        {
+    this.reset = function() {
+        for(let i = 80;i<_bankSize;i++){
             _ram[i]=0;
         }
     }
 
-    this.writeByte = function(address,value)
-    {
-        if(address < 0 || address >= _bankSize)
-        {
+    this.writeByte = function(address,value) {
+        if(address < 0 || address >= _bankSize) {
             throw new ReferenceError('mmu:writeByte - address is out of range');
         }
-
-        if(address < 0x200)
-        {
+        if(address < 0x200){
             throw new ReferenceError('mmu:writeByte - restricted area of memory');
         }
-
         _ram[address]=value;
     }
 
-    this.readByte = function(address)
-    {
-        if(address < 0 || address >= _bankSize)
-        {
+    this.readByte = function(address){
+        if(address < 0 || address >= _bankSize){
             throw new ReferenceError("mmu:readByte - address is out of range");
         }
-
         return _ram[address];
     }
 
-    this.writeWord = function(address,value)
-    {
-        if(address < 0 || address >= _bankSize -2)
-        {
+    this.writeWord = function(address,value){
+        if(address < 0 || address >= _bankSize -2){
             throw new ReferenceError('mmu:writeWord - address is out of range');
         }
-
-        if(address < 0x200)
-        {
+        if(address < 0x200) {
             throw new ReferenceError('mmu:writeWord - restricted area of memory')
         }
-
         _ram[address]=value>>8;
         _ram[address+1]=value & 0xFF;
     }
 
-    this.readWord = function(address)
-    {
-        if(address < 0 || address >= _bankSize - 2)
-        {
+    this.readWord = function(address){
+        if(address < 0 || address >= _bankSize - 2){
             throw new ReferenceError("mmu:readWord - address is out of range");
         }
-
         return (_ram[address]<<8)+(_ram[address+1]);
     }
 }

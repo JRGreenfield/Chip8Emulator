@@ -90,7 +90,7 @@ test ('RET 0x00EE',t=>{
     _hardwareInterface.memoryManager.writeWord(0x202,0x00EE);
     _hardwareInterface.update(4);
     t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
-    t.is(_hardwareInterface.cpu.pc,0x200);
+    t.is(_hardwareInterface.cpu.pc,0x202);
     t.is(_hardwareInterface.cpu.sp,0);
     t.is(_hardwareInterface.cpu.i,0)
     defaultRegisterValueCheck(_hardwareInterface,t);
@@ -489,7 +489,26 @@ test('JP V0,addr 0xBNNN',t=>{
     t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
     _hardwareInterface.memoryManager.writeWord(0xF0F,0xBFFF);
     _hardwareInterface.update(1);
-    t.is(_hardwareInterface.cpu.pc,0xE);
+    t.is(_hardwareInterface.cpu.pc,0x100E);
+});
+
+test('Rand 0xCXNN',t=>{
+    let _hardwareInterface = new MockHardwareInterface();
+    _hardwareInterface.initialize();
+    _hardwareInterface.memoryManager.writeWord(0x200,0xC001);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,2);
+    t.is(_hardwareInterface.cpu.v0,0x1);
+    t.is(_hardwareInterface.cpu.sp,0);
+    t.is(_hardwareInterface.cpu.pc,0x202);
+    t.is(_hardwareInterface.cpu.i,0x0);
+    defaultRegisterValueCheck(_hardwareInterface,t,'0');
+    defaultStackValueCheck(_hardwareInterface,t);
+    _hardwareInterface.update(2);
+    t.is(_hardwareInterface.cpu.operationCyclesRequired,0);
+    _hardwareInterface.memoryManager.writeWord(0x202,0xCE01);
+    _hardwareInterface.update(1);
+    t.is(_hardwareInterface.cpu.ve,0x1);
 });
 
 test('DRW Vx,Vy,n 0xDxyn',t=>{
@@ -524,7 +543,7 @@ test('DRW Vx,Vy,n 0xDxyn',t=>{
     t.is(_hardwareInterface.cpu.sp,0);
     t.is(_hardwareInterface.cpu.i,0x300);
     defaultRegisterValueCheck(_hardwareInterface,t,'01f');
-    defaultRegisterValueCheck(_hardwareInterface,t,'01f');
+    defaultStackValueCheck(_hardwareInterface,t,'01f');
     t.is(_hardwareInterface.graphicsManager.screenData[63],1);
     t.is(_hardwareInterface.graphicsManager.screenData[0],1);
     t.is(_hardwareInterface.graphicsManager.screenData[1],1);

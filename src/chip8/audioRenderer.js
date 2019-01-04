@@ -5,33 +5,41 @@ export function AudioRenderer()
     let _audioCtx;
     let _oscillator;
     let _gainNode;
+    let _active;
 
     this.initialize = function()
     {
         _audioCtx = new AudioContext();
+        _active=false;
         _oscillator = _audioCtx.createOscillator();
         _gainNode = _audioCtx.createGain();
-
-        _oscillator.connect(_gainNode);
         _gainNode.connect(_audioCtx.destination);
-
         _oscillator.type = "square";
         _oscillator.frequency.value = 800;
+        _oscillator.start();
     }
 
     this.reset = function()
     {
-        _oscillator.stop();
+        this.stopBeepSound();
     }
 
     this.startBeepSound=function()
     {
-        _oscillator.start();
+        if(!_active)
+        {
+            _oscillator.connect(_audioCtx.destination);
+            _active = true;
+        }    
     }
 
     this.stopBeepSound=function()
     {
-        _oscillator.stop();
+        if(_active)
+        {
+            _oscillator.disconnect(_audioCtx.destination);
+            _active=false;
+        }
     }
 }
 
