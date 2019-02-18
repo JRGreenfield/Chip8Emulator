@@ -19,7 +19,7 @@ screen.  This is useful for stepping through each opcode and understanding what 
 The program's execution speed can also be increased/decreased by using the increase cpu frequency/decrease cpu frequency buttons
 below the game screen.  The cpu frequency can be increased/decreased by units of 60Hz.
 
-##Links
+## Links
 Check these links out if you are interested in developing your own Chip-8 emulator.
 
 [Cowgod's Chip technical reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
