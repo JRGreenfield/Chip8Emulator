@@ -2,33 +2,55 @@
 import React from 'react';
 import {Chip8HardwareInterface} from '../chip8/chip8hardwareInterface';
 import {RomLoader} from './romLoader';
-import {HardwareMonitor} from './hardwareMonitor';
+import {RegisterTable} from './registerTable';
+import {StackTable} from './stackTable';
+import {OpcodeDecoder} from './opcodeDecoder';
 import {PlaybackControls} from './playbackControls';
 import {KeypadControls} from './keypadControls';
 import {GameSelector} from './gameSelector';
 import {CpuFrequencyModifier} from './cpuFrequencyModifier';
+import {GraphicsCanvas} from './graphicsCanvas';
 
 export class Chip8 extends React.Component {
     constructor(props){
        super(props);
        this.timerID=null;
        this.chip8=new Chip8HardwareInterface();
-       this.chip8.initialize();
        this.game = null;
-       this.state = {generalRegisterValues:this.chip8.cpu.generalRegisters,
-                     stackValues:this.chip8.cpu.stack,
-                     pc:this.chip8.cpu.pc,
-                     sp:this.chip8.cpu.sp,
-                     i:this.chip8.cpu.i,
-                     st:this.chip8.soundTimer.register,
-                     dt:this.chip8.delayTimer.register,
-                     inputRegister:this.chip8.inputManager.register,
+       this.state = {generalRegisterValues:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                     stackValues:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                     pc:0,
+                     sp:0,
+                     i:0,
+                     st:0,
+                     dt:0,
+                     inputRegister:0,
                      playing:false,
-                     cpuFrequencyMultiplier:4,
+                     cpuFrequencyMultiplier:7,
                      controlDescriptions:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
-                     romLoaded:false
+                     romLoaded:false,
+                     opcode:null
                     };
     }
+
+   componentDidMount()
+   {
+       this.chip8.initialize();  
+       this.setState({
+           generalRegisterValues:this.chip8.cpu.generalRegisters,
+            stackValues:this.chip8.cpu.stack,
+            pc:this.chip8.cpu.pc,
+            sp:this.chip8.cpu.sp,
+            i:this.chip8.cpu.i,
+            st:this.chip8.soundTimer.register,
+            dt:this.chip8.delayTimer.register,
+            inputRegister:this.chip8.inputManager.register,
+            playing:false,
+            cpuFrequencyMultiplier:7,
+            opcode:this.chip8.cpu.opcode,
+            controlDescriptions:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+            romLoaded:false});
+   }
    
    componentWillUnmount(){
      if(this.playing){
@@ -46,14 +68,6 @@ export class Chip8 extends React.Component {
    }
 
    handleRomLoaded(rom){
-       
-       let value="["
-       for(let i=0;i<rom.length;i++)
-       {
-            value+=`${rom[i]},`
-       }
-       value+="]"
-       console.log(value);
        this.chip8.reset();
        this.chip8.loadProgram(rom);
        this.setState({
@@ -65,12 +79,14 @@ export class Chip8 extends React.Component {
             st:this.chip8.soundTimer.register,
             dt:this.chip8.delayTimer.register,
             inputRegister:this.chip8.inputManager.register,
+            opcode:this.chip8.cpu.opcode,
             playing:false,
             romLoaded:true}); 
    }
 
    handleStepClicked(){
-     if(!this.playing && this.romLoaded){
+     debugger;
+     if(!this.state.playing || this.state.romLoaded){
          this.tick();
      }
    }
@@ -103,8 +119,8 @@ export class Chip8 extends React.Component {
             i:this.chip8.cpu.i,
             st:this.chip8.soundTimer.register,
             dt:this.chip8.delayTimer.register,
+            opcode:this.chip8.cpu.opcode,
             inputRegister:this.chip8.inputManager.register,
-            controlDescriptions:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
             playing:false}); 
    }
 
@@ -131,6 +147,7 @@ export class Chip8 extends React.Component {
                sp:this.chip8.cpu.sp,
                st:this.chip8.soundTimer.register,
                dt:this.chip8.delayTimer.register,
+               opcode:this.chip8.cpu.opcode,
                inputRegister:this.chip8.inputManager.register,
                i:this.chip8.cpu.i}); 
    }
@@ -144,19 +161,19 @@ export class Chip8 extends React.Component {
    
    render() {
       return (
-             <div className="chip8">
-             <RomLoader onRomFileSelected={(rom)=>this.handleRomLoaded(rom)}/>
-             <HardwareMonitor  generalRegisterValues={this.state.generalRegisterValues.slice()} 
-                               stackValues={this.state.stackValues.slice()} 
-                               pc={this.state.pc} sp={this.state.sp} i={this.state.i}
-                               dt={this.state.dt} st={this.state.st}/>
-             <PlaybackControls onPlayClick={()=>this.handlePlayClicked()}
+             <div className="container">
+                <GraphicsCanvas/>
+                <OpcodeDecoder opcode={this.state.opcode}/>
+                <RegisterTable generalRegisterValues = {this.state.generalRegisterValues.slice()} pc={this.state.pc} sp={this.state.sp} i={this.state.i} dt={this.state.dt} st={this.state.st}/>
+                <StackTable stackValues = {this.state.stackValues.slice()}/>
+
+                <PlaybackControls onPlayClick={()=>this.handlePlayClicked()}
                                romLoaded={this.state.romLoaded}
                                playing={this.state.playing} onStepClick={()=>this.handleStepClicked()}                                 
                                onResetClick={()=>this.handleResetClicked()}/>
-             <KeypadControls inputRegister={this.state.inputRegister} controlDescriptions={this.state.controlDescriptions}/>
-             <GameSelector onGameSelected={(game)=>this.handleGameSelected(game)} />
-             <CpuFrequencyModifier cpuFrequencyMultiplier={this.state.cpuFrequencyMultiplier} decreaseCpuFrequency={()=>this.decreaseCpuFrequency()} increaseCpuFrequency={()=>this.increaseCpuFrequency()}/>
+                <KeypadControls inputRegister={this.state.inputRegister} controlDescriptions={this.state.controlDescriptions}/>
+                <GameSelector onGameSelected={(game)=>this.handleGameSelected(game)} />
+                <CpuFrequencyModifier cpuFrequencyMultiplier={this.state.cpuFrequencyMultiplier} decreaseCpuFrequency={()=>this.decreaseCpuFrequency()} increaseCpuFrequency={()=>this.increaseCpuFrequency()}/>
              </div>
             
       );
