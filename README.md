@@ -26,4 +26,3 @@ Check these links out if you are interested in developing your own Chip-8 emulat
 
 [Mastering Chip-8](http://mattmik.com/files/chip8/mastering/chip8.html)
 
-[Chip-8 Reference Manual useful for game instructions] (http://chip8.sourceforge.net/chip8-1.1.pdf)
