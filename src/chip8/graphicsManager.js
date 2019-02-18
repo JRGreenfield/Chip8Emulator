@@ -33,17 +33,20 @@ export function GraphicsManager(pixelRenderer,screenWidth,screenHeight){
 
     this.drawPixelByte = function(x,y,byte){
         let pixelCleared=false;
-        x%=_screenWidth;
-        y%=_screenHeight;   
-        for(let px = 0;px<8;px++){
-            let value = (byte & (0x80 >> px));
-            if( value !== 0){
-                if(_screenData[x+px+y*_screenWidth]===1){
-                    pixelCleared = true;
+        if(y<_screenHeight)
+        {
+            x%=_screenWidth; 
+            for(let px = 0;px<8;px++){
+                let value = (byte & (0x80 >> px));
+                if( value !== 0){
+                    if(_screenData[x+px+y*_screenWidth]===1){
+                        pixelCleared = true;
+                    }
+                    _screenData[x+px+y*_screenWidth]^=1;
                 }
-                _screenData[x+px+y*_screenWidth]^=1;
             }
         }
+       
         return pixelCleared;
     }
 

@@ -16,6 +16,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     let _stackSize=stackSize;;
     let _pcStartAddress=pcStartAddress;
     let _keyDownCode;
+    let _opcode;
  
     for(let index=0;index<=0xF;index++){
         Object.defineProperty(this,'v'+Math.abs(index).toString(16),{
@@ -56,6 +57,11 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
             return _sp[0];
         }
     });
+    Object.defineProperty(this,'opcode',{
+        get:function(){
+            return _opcode;
+        }
+    });
 
     this.initialize = function()
     {
@@ -66,6 +72,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _stack = new Uint16Array(_stackSize);
         _pc[0]=_pcStartAddress;
         _keyDownCode = null;
+        _opcode=null
     }
 
     this.reset = function(){
@@ -73,6 +80,7 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
         _sp[0]=0;
         _indexRegister[0]=0;
         _keyDownCode = null;
+        _opcode=null
         for(let index=0;index<=0xF;index++){
             _generalRegisters[index]=0;
         }
@@ -82,8 +90,9 @@ export function Cpu(graphicsManager,memoryManger,inputManager,delayTimer,soundTi
     }
 
     this.update = function(){       
-        let opcode = _memoryManager.readWord(_pc[0]);
-        execute(opcode);
+        _opcode = _memoryManager.readWord(_pc[0]);
+        execute(_opcode);
+      
     }
 
     function execute(opcode){
