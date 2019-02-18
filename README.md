@@ -1,5 +1,4 @@
 # Chip8Emulator
-Chip-8 Emulator
 
 Yet another Chip-8 emulator that can run in your web browser. 
 
