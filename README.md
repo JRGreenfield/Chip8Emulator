@@ -2,11 +2,11 @@
 
 Yet another Chip-8 emulator that can run in your web browser. 
 
-[Check it out here] (https://jrgreenfield.github.io/Chip8/)
+https://jrgreenfield.github.io/Chip8/
 
 ## Development
 Developed using ES6 Javascript, WebGL, and React.  Webpack and Babel are used to 
-transpile and bundle code for web deployment. 
+transpile and bundle the code for web deployment. 
 
 ## Instructions
 Programs may be selected by using the drop-down menu. Once a program is selected, press the play button to start
